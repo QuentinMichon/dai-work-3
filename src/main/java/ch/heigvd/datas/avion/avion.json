@@ -1,0 +1,26 @@
+[ {
+  "constructor" : "Airbus",
+  "ICAO" : "A388",
+  "range" : 15200,
+  "maxCapacity" : 525
+}, {
+  "constructor" : "Boeing",
+  "ICAO" : "B748",
+  "range" : 14800,
+  "maxCapacity" : 467
+}, {
+  "constructor" : "Airbus",
+  "ICAO" : "A318",
+  "range" : 5750,
+  "maxCapacity" : 132
+}, {
+  "constructor" : "Airbus",
+  "ICAO" : "A319N",
+  "range" : 6950,
+  "maxCapacity" : 156
+}, {
+  "constructor" : "Airbus",
+  "ICAO" : "A319",
+  "range" : 6950,
+  "maxCapacity" : 156
+} ]
