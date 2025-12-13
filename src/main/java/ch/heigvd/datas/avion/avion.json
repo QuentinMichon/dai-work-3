@@ -1,0 +1,11 @@
+[{
+  "constructor": "Airbus",
+  "ICAO": "A388",
+  "range": 15200,
+  "maxCapacity": 525
+}, {
+  "constructor": "Boeing",
+  "ICAO": "B748",
+  "range": 14800,
+  "maxCapacity": 467
+} ]
