@@ -207,6 +207,14 @@ public class AirplaneController {
         ctx.json(removed);
     }
 
+    /**
+     * Brief :
+     * modifie l'avion si le champ n'est pas NULL
+     *  s'il est NULL, on reprend la valeur existante
+     *
+     *  controle supplementaire pour la vaidité du range et capacityMax
+     *  ICAO verification d'unicité
+     **/
     public static void putAvion(Context ctx) {
         ObjectMapper mapper = new ObjectMapper();
 
@@ -290,9 +298,5 @@ public class AirplaneController {
 
         // return the new airplane
         ctx.status(HttpStatus.ACCEPTED).json(newAvion);
-
-        /** modifie l'avion si le champ n'est pas NULL
-         *  s'il est NULL, on reprend la valeur existante
-        **/
     }
 }
