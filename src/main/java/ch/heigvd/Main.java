@@ -10,6 +10,7 @@ public class Main {
         Javalin app = Javalin.create();
         app.get("/avions", AirplaneController::getAvions);
         app.post("/avions", AirplaneController::postAvion);
+        app.delete("/avions", AirplaneController::deleteAvion);
         app.start(PORT);
     }
 }

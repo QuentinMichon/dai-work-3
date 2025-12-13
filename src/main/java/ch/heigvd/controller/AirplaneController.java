@@ -168,4 +168,40 @@ public class AirplaneController {
         // send the airplane added to confirm the process
         ctx.status(HttpStatus.CREATED).json(newAvion);
     }
+
+    public static void deleteAvion(Context ctx) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // read params
+        //String icao = ctx.queryParam("icao");
+        String constructor = ctx.queryParam("constructor");
+
+        // control params
+        if (constructor == null) {
+            ctx.result("Invalid constructor need parameter <constructor> xor <icao>")
+                    .status(HttpStatus.BAD_REQUEST);
+            return;
+        }
+
+        // fetch current data
+        List<AvionJSON> avions = readAvions(JSON_FILEPATH);
+
+        // delete airplanes
+        List<AvionJSON> removed = avions.stream().filter(a -> constructor.equalsIgnoreCase(a.constructor)).toList();
+
+        avions.removeAll(removed);
+
+        // update JSON file
+        try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
+            BufferedWriter bw = new BufferedWriter(writer);
+        ) {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
+        } catch (IOException e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+            return;
+        }
+
+        // send the removed airplanes
+        ctx.json(removed);
+    }
 }
