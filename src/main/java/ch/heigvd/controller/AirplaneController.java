@@ -2,6 +2,7 @@ package ch.heigvd.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import ch.heigvd.types.AvionJSON;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
@@ -11,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class AirplaneController {
 
@@ -203,5 +205,94 @@ public class AirplaneController {
 
         // send the removed airplanes
         ctx.json(removed);
+    }
+
+    public static void putAvion(Context ctx) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        String paramICAO = ctx.queryParam("icao");
+
+        if (paramICAO == null) {
+            ctx.result("Invalid icao need parameter <icao>").status(HttpStatus.BAD_REQUEST);
+            return;
+        }
+
+        // fetch data
+        List<AvionJSON> avions = readAvions(JSON_FILEPATH);
+        // find requested airplane index (use chatGPT 5.2)
+        int index = IntStream.range(0, avions.size())
+                .filter(i -> avions.get(i).ICAO.equalsIgnoreCase(paramICAO))
+                .findFirst()
+                .orElse(-1);
+
+        if(index == -1) {
+            ctx.result("No airplane with this ICAO exists").status(HttpStatus.NO_CONTENT);
+            return;
+        }
+
+        AvionJSON newAvion;
+        try {
+            newAvion = ctx.bodyAsClass(AvionJSON.class);
+        } catch (Exception e) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
+            return;
+        }
+        AvionJSON oldAvion = avions.get(index);
+
+        // check if ICAO is modified AND if the new icao is unique
+        if(newAvion.ICAO != null) {
+            if (!avions.stream()
+                    .filter(a -> a.ICAO.equalsIgnoreCase(newAvion.ICAO))
+                    .toList()
+                    .isEmpty()
+                    && !newAvion.ICAO.equals(oldAvion.ICAO)) {
+                ctx.result("An airplane with this ICAO already exists").status(HttpStatus.CONFLICT);
+                return;
+            }
+        } else {
+            newAvion.ICAO = oldAvion.ICAO;
+        }
+
+        if(newAvion.constructor == null) {
+            newAvion.constructor = oldAvion.constructor;
+        }
+
+        if(newAvion.range != null) {
+            if(newAvion.range <= 0) {
+                ctx.result("Invalid range, it must be a positive number").status(HttpStatus.BAD_REQUEST);
+                return;
+            }
+        } else {
+            newAvion.range = oldAvion.range;
+        }
+
+        if(newAvion.maxCapacity != null) {
+            if(newAvion.maxCapacity <= 0) {
+                ctx.result("Invalid maximum airplane capacity, it must be a positive number").status(HttpStatus.BAD_REQUEST);
+                return;
+            }
+        } else {
+            newAvion.maxCapacity = oldAvion.maxCapacity;
+        }
+
+        // update into the list
+        avions.set(index, newAvion);
+
+        // update JSON file
+        try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
+             BufferedWriter bw = new BufferedWriter(writer);
+        ) {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
+        } catch (IOException e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+            return;
+        }
+
+        // return the new airplane
+        ctx.status(HttpStatus.ACCEPTED).json(newAvion);
+
+        /** modifie l'avion si le champ n'est pas NULL
+         *  s'il est NULL, on reprend la valeur existante
+        **/
     }
 }
