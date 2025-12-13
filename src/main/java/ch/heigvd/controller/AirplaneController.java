@@ -12,7 +12,7 @@ import java.util.List;
 
 public class AirplaneController {
 
-    private static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/avion.json";
+    public static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/avion/avion.json";
 
     public static List<AvionJSON> readAvions(String filename) {
         ObjectMapper mapper = new ObjectMapper();
@@ -24,9 +24,11 @@ public class AirplaneController {
             return mapper.readValue(avionJSON, new TypeReference<>(){});
 
         } catch (IOException e) {
-            System.err.println("Error reading : " + filename);
+            System.err.println("Error reading : " + filename + e);
             return List.of();
         }
     }
+
+
 
 }
