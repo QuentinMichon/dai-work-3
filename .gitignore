@@ -1,0 +1,51 @@
+## IntelliJ IDEA
+# General
+.idea/libraries/
+.idea/shelf/
+.idea/compiler.xml
+.idea/jarRepositories.xml
+.idea/modules.xml
+.idea/workspace.xml
+*.iws
+*.iml
+*.ipr
+
+# Copilot (IntelliJ plugin)
+.idea/copilot.*
+
+# Editor-based HTTP Client requests
+.idea/httpRequests/
+
+# Datasource local storage ignored files
+.idea/dataSources/
+.idea/dataSources.local.xml
+
+## Linux
+# Temporary files
+*~
+
+## macOS
+# Files created by macOS Finder
+.DS_Store
+
+## Maven
+target/
+# Maven Shade plugin
+dependency-reduced-pom.xml
+
+## Windows
+# Windows thumbnail cache files
+Thumbs.db
+
+# Folder config file
+[Dd]esktop.ini
+
+## IOFiles
+#output
+IOFile/*
+#input (to keep)
+!IOFile/rondoudou.bmp
+!IOFile/pokeball.bmp
+!IOFile/salameche.bmp
+!IOFile/rondoudou.png
+!IOFile/starter-fire.jpg
