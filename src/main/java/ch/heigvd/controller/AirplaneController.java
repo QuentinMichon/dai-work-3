@@ -37,29 +37,47 @@ public class AirplaneController {
 
         List<AvionJSON> list;
 
+        // filters
         String constructor = ctx.queryParam("constructor");
-        String paramCapacity = ctx.queryParam("capacity");
+        List<String> paramCapacity = ctx.queryParams("capacity");
+        String paramRange = ctx.queryParam("range");
+
+        // sort conditions
         List<String> sorts = ctx.queryParams("sort");
 
-        // fetch data
+        // fetch data and apply filter as AND condition
         if (constructor == null) {
             list = readAvions(JSON_FILEPATH);
         } else {
             list = readAvions(JSON_FILEPATH)
                     .stream()
                     .filter(a -> constructor.equalsIgnoreCase(a.constructor))
-                    .toList();
+                    .collect(Collectors.toList());
         }
 
-        if(paramCapacity != null) {
-            boolean less = paramCapacity.startsWith("-");
-            paramCapacity = less ? paramCapacity.substring(1) : paramCapacity;
-            int capacity = Integer.parseInt(paramCapacity);
+        if(!paramCapacity.isEmpty()) {
+            for (String paramCap : paramCapacity) {
+                boolean less = paramCap.startsWith("-");
+                paramCap = less ? paramCap.substring(1) : paramCap;
+                int capacity = Integer.parseInt(paramCap);
+
+                if(less) {
+                    list = list.stream().filter(a -> a.maxCapacity <= capacity).collect(Collectors.toList());;
+                } else {
+                    list = list.stream().filter(a -> a.maxCapacity >= capacity).collect(Collectors.toList());;
+                }
+            }
+        }
+
+        if(paramRange != null) {
+            boolean less = paramRange.startsWith("-");
+            paramRange = less ? paramRange.substring(1) : paramRange;
+            int range = Integer.parseInt(paramRange);
 
             if(less) {
-                list = list.stream().filter(a -> a.maxCapacity < capacity).toList();
+                list = list.stream().filter(a -> a.range <= range).collect(Collectors.toList());
             } else {
-                list = list.stream().filter(a -> a.maxCapacity > capacity).toList();
+                list = list.stream().filter(a -> a.range >= range).collect(Collectors.toList());
             }
         }
 
