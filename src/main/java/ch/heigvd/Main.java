@@ -15,7 +15,8 @@ public class Main {
         app.delete("/avions", AirplaneController::deleteAvion);
         app.put("/avions", AirplaneController::putAvion);
 
-        app.post("/company", CompanyController::postAvion);
+        app.post("/company", CompanyController::postCompany);
+        app.get("/company", CompanyController::getCompany);
 
         app.start(PORT);
     }

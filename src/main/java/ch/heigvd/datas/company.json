@@ -9,4 +9,23 @@
     "aircraftICAO" : "A388",
     "quantity" : 41
   } ]
+}, {
+  "companyICAO" : "SWR",
+  "name" : "SWISS",
+  "country" : "Switzerland",
+  "fleet" : [ ]
+}, {
+  "companyICAO" : "EZY",
+  "name" : "easyJet",
+  "country" : "United Kingdom",
+  "fleet" : [ {
+    "aircraftICAO" : "A319",
+    "quantity" : 61
+  }, {
+    "aircraftICAO" : "A318",
+    "quantity" : 79
+  }, {
+    "aircraftICAO" : "B748",
+    "quantity" : 68
+  } ]
 } ]

@@ -9,7 +9,9 @@ import io.javalin.http.HttpStatus;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CompanyController {
 
@@ -27,9 +29,97 @@ public class CompanyController {
         }
     }
 
+    private static int fleetSize(CompanyJSON company) {
+        if (company == null) return 0;
+        if (company.fleet.isEmpty()) return 0;
+
+        int count = 0;
+
+        for(CompanyJSON.AircraftTuple tuple : company.fleet) {
+            count += tuple.quantity;
+        }
+        return count;
+    }
+
     //-------------- ENDPOINT FUNCTIONS --------------
 
-    public static void postAvion(Context ctx) {
+    public static void getCompany(Context ctx) {
+        List<CompanyJSON> companies;
+
+        // filters
+        String countryFilter = ctx.queryParam("country");
+        List<String> fleetSizeFilters = ctx.queryParams("fleetSize");
+
+        // sort conditions
+        List<String> sorts = ctx.queryParams("sort");
+
+        // fetch datas
+        companies = readCompany(JSON_FILEPATH);
+
+        // filter
+        if (countryFilter != null) {
+            companies = companies.stream()
+                                 .filter(cmp -> cmp.country.equalsIgnoreCase(countryFilter))
+                                 .collect(Collectors.toList());
+        }
+
+        if(!fleetSizeFilters.isEmpty()) {
+            for(String fleetSizeFilter : fleetSizeFilters) {
+                boolean less = fleetSizeFilter.startsWith("-");
+                fleetSizeFilter = less ? fleetSizeFilter.substring(1) : fleetSizeFilter;
+                int fleetSize = Integer.parseInt(fleetSizeFilter);
+
+                if(less) {
+                    companies = companies.stream()
+                                         .filter(cmp -> fleetSize(cmp) <= fleetSize)
+                                         .collect(Collectors.toList());
+                } else {
+                    companies = companies.stream()
+                            .filter(cmp -> fleetSize(cmp) >= fleetSize)
+                            .collect(Collectors.toList());
+                }
+            }
+        }
+
+        // sort
+        // TODO : add sort by fleet size ?
+        if (!sorts.isEmpty()) {
+            Comparator<CompanyJSON> comparator = null;
+            Comparator<CompanyJSON> c;
+
+            for (String s : sorts) {
+                boolean desc = s.startsWith("-");
+                String field = desc ? s.substring(1) : s;
+
+                switch (field) {
+                    case "companyICAO":
+                        c = Comparator.comparing(cmp -> cmp.companyICAO.toLowerCase());
+                        break;
+                    case "name":
+                        c = Comparator.comparing(cmp -> cmp.name.toLowerCase());
+                        break;
+                    case "country":
+                        c = Comparator.comparing(cmp -> cmp.country.toLowerCase());
+                        break;
+                    default:
+                        ctx.status(HttpStatus.BAD_REQUEST).result("Sort parameters incorrect");
+                        return;
+                }
+
+                if (desc) c = c.reversed();
+                comparator = (comparator == null) ? c : comparator.thenComparing(c);
+            }
+
+            if(comparator != null) {
+                companies.sort(comparator);
+            }
+        }
+
+        // send data
+        ctx.json(companies);
+    }
+
+    public static void postCompany(Context ctx) {
         ObjectMapper mapper = new ObjectMapper();
 
         // parse JSON body -> CompanyJSON
@@ -57,7 +147,7 @@ public class CompanyController {
         if(!companies.isEmpty()) {
             for(CompanyJSON company : companies) {
                 if(company.companyICAO.equals(newCompany.companyICAO)) {
-                    ctx.status(HttpStatus.BAD_REQUEST).result("Company ICAO already exists");
+                    ctx.status(HttpStatus.CONFLICT).result("Company ICAO already exists");
                     return;
                 }
             }
