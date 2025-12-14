@@ -214,4 +214,39 @@ public class CompanyController {
         // response
         ctx.status(HttpStatus.CREATED).json(newCompany);
     }
+
+    public static void deleteCompany(Context ctx) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        String companyICAO = ctx.queryParam("companyICAO");
+
+        if(companyICAO == null || companyICAO.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter companyICAO not empty");
+            return;
+        }
+
+        // fetch data
+        List<CompanyJSON> companies = readCompany(JSON_FILEPATH);
+
+        // delete company
+        CompanyJSON companyRemoved = companies.stream()
+                                              .filter(cmp -> cmp.companyICAO.equalsIgnoreCase(companyICAO))
+                                              .toList()
+                                              .getFirst();
+
+        companies.remove(companyRemoved);
+
+        // update JSON file
+        try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
+             BufferedWriter bw = new BufferedWriter(writer);
+        ) {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(bw, companies);
+        } catch (IOException e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+            return;
+        }
+
+        // send the removed company
+        ctx.json(companyRemoved);
+    }
 }

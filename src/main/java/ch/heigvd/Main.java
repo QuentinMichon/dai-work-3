@@ -17,6 +17,7 @@ public class Main {
 
         app.post("/company", CompanyController::postCompany);
         app.get("/company", CompanyController::getCompany);
+        app.delete("/company", CompanyController::deleteCompany);
 
         app.start(PORT);
     }
