@@ -1,0 +1,12 @@
+[ {
+  "companyICAO" : "AFR",
+  "name" : "Air France",
+  "country" : "France",
+  "fleet" : [ {
+    "aircraftICAO" : "A319",
+    "quantity" : 43
+  }, {
+    "aircraftICAO" : "A388",
+    "quantity" : 41
+  } ]
+} ]
