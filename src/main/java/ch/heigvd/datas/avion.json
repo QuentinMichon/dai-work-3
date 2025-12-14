@@ -20,7 +20,7 @@
   "maxCapacity" : 156
 }, {
   "constructor" : "Airbus",
-  "ICAO" : "A319",
+  "ICAO" : "A319-100",
   "range" : 6950,
   "maxCapacity" : 156
 } ]

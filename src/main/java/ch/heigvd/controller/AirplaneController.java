@@ -256,8 +256,15 @@ public class AirplaneController {
                     && !newAvion.ICAO.equals(oldAvion.ICAO)) {
                 ctx.result("An airplane with this ICAO already exists").status(HttpStatus.CONFLICT);
                 return;
+            } else {
+                // update the ICAO into the companies fleets
+                boolean ret = CompanyController.updateAircraftICAO(oldAvion.ICAO, newAvion.ICAO);
+                if(!ret) {
+                    ctx.result("Companies can't be updated").status(HttpStatus.FAILED_DEPENDENCY);
+                }
             }
         } else {
+            // no change
             newAvion.ICAO = oldAvion.ICAO;
         }
 

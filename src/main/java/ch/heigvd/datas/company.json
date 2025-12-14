@@ -3,7 +3,7 @@
   "name" : "Air France",
   "country" : "France",
   "fleet" : [ {
-    "aircraftICAO" : "A319",
+    "aircraftICAO" : "A319-100",
     "quantity" : 43
   }, {
     "aircraftICAO" : "A388",
@@ -19,7 +19,7 @@
   "name" : "easyJet",
   "country" : "United Kingdom",
   "fleet" : [ {
-    "aircraftICAO" : "A319",
+    "aircraftICAO" : "A319-100",
     "quantity" : 61
   }, {
     "aircraftICAO" : "A318",

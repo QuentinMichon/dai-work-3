@@ -41,6 +41,32 @@ public class CompanyController {
         return count;
     }
 
+    // update ICAO aircraft if the ICAO change
+    public static boolean updateAircraftICAO(String oldICAO, String newICAO) {
+        List<CompanyJSON> companies = readCompany(JSON_FILEPATH);
+        ObjectMapper mapper = new ObjectMapper();
+
+        if(companies.isEmpty()) return true;
+
+        for(CompanyJSON company : companies) {
+            if(company.fleet.isEmpty()) continue;
+
+            for(CompanyJSON.AircraftTuple tuple : company.fleet) {
+                if(tuple.aircraftICAO.equals(oldICAO)) {
+                    tuple.aircraftICAO = newICAO;
+                }
+            }
+        }
+
+        // write the avion.json
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(JSON_FILEPATH), StandardCharsets.UTF_8)) {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(writer, companies);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     //-------------- ENDPOINT FUNCTIONS --------------
 
     public static void getCompany(Context ctx) {
