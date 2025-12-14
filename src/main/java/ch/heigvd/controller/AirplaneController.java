@@ -16,7 +16,7 @@ import java.util.stream.IntStream;
 
 public class AirplaneController {
 
-    public static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/avion/avion.json";
+    public static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/avion.json";
 
     public static List<AvionJSON> readAvions(String filename) {
         ObjectMapper mapper = new ObjectMapper();
