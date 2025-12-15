@@ -19,6 +19,9 @@ public class Main {
         app.get("/company", CompanyController::getCompany);
         app.delete("/company", CompanyController::deleteCompany);
 
+        app.put("/company/{cmpICAO}/buy", CompanyController::addAircraft);
+        //app.put("/company/{cmpICAO}/sell", null);
+
         app.start(PORT);
     }
 }

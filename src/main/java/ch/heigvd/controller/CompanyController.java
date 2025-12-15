@@ -249,4 +249,90 @@ public class CompanyController {
         // send the removed company
         ctx.json(companyRemoved);
     }
+
+    // Aircraft handler for company
+    public static void addAircraft(Context ctx) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // company/{company}/?aircraftICAO=xxxx&quantity=zz
+
+        String companyICAO = ctx.pathParam("cmpICAO");
+        String aircraftICAO = ctx.queryParam("aircraftICAO");
+        String quantity = ctx.queryParam("quantity");
+
+        int nb;
+        List<CompanyJSON> companies;
+        CompanyJSON company;
+        List<AvionJSON> aircrafts;
+
+        // check company
+        if(companyICAO.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter company not empty");
+            return;
+        }
+
+        companies = readCompany(JSON_FILEPATH);
+        company = companies.stream()
+                            .filter(cmp -> cmp.companyICAO.equalsIgnoreCase(companyICAO))
+                            .findFirst()
+                            .orElse(null);
+        if(company == null) {
+            ctx.status(HttpStatus.NOT_FOUND).result("Company does not exist");
+            return;
+        }
+        // company OK
+
+        // check param aircraftICAO
+        if(aircraftICAO == null || aircraftICAO.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter aircraftICAO not empty");
+            return;
+        }
+
+        aircrafts = AirplaneController.readAvions(AirplaneController.JSON_FILEPATH);
+
+        if(aircrafts.stream().filter(a -> a.ICAO.equalsIgnoreCase(aircraftICAO)).count() != 1) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Airplane " +  aircraftICAO + " is not into the catalog");
+            return;
+        }
+        // avion ICAO OK
+
+        // check quantity (optional
+        try {
+            if(quantity == null || quantity.isBlank()) {
+                nb = 1;
+            } else {
+                nb = Integer.parseUnsignedInt(quantity);
+            }
+        } catch (NumberFormatException e) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid quantity format");
+            return;
+        }
+        // quantity OK
+
+        // modification de company
+        CompanyJSON.AircraftTuple tuple = company.fleet.stream()
+                .filter(a -> a.aircraftICAO.equalsIgnoreCase(aircraftICAO))
+                .findFirst()
+                .orElse(null);
+        if(tuple != null) {
+            tuple.quantity += nb;
+        } else {
+            CompanyJSON.AircraftTuple newTuple = new CompanyJSON.AircraftTuple();
+            newTuple.aircraftICAO = aircraftICAO;
+            newTuple.quantity = nb;
+            company.fleet.add(newTuple);
+        }
+
+        // update JSON file
+        try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
+             BufferedWriter bw = new BufferedWriter(writer);
+        ) {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(bw, companies);
+        } catch (IOException e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+            return;
+        }
+
+        ctx.status(HttpStatus.ACCEPTED).json(company);
+    }
 }

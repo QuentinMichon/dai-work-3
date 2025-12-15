@@ -23,9 +23,12 @@
     "quantity" : 61
   }, {
     "aircraftICAO" : "A318",
-    "quantity" : 79
+    "quantity" : 85
   }, {
     "aircraftICAO" : "B748",
     "quantity" : 68
+  }, {
+    "aircraftICAO" : "A388",
+    "quantity" : 20
   } ]
 } ]
