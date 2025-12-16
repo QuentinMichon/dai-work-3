@@ -335,4 +335,79 @@ public class CompanyController {
 
         ctx.status(HttpStatus.ACCEPTED).json(company);
     }
+
+    public static void sellAircraft(Context ctx) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        String companyICAO = ctx.pathParam("cmpICAO");
+        String aircraftICAO = ctx.queryParam("aircraftICAO");
+        String quantity = ctx.queryParam("quantity");
+
+        List<CompanyJSON> companies;
+        CompanyJSON company;
+        CompanyJSON.AircraftTuple aircraftToSell;
+        int nb;
+
+        // check company
+        if(companyICAO.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter company not empty");
+            return;
+        }
+
+        companies = readCompany(JSON_FILEPATH);
+        company = companies.stream()
+                .filter(cmp -> cmp.companyICAO.equalsIgnoreCase(companyICAO))
+                .findFirst()
+                .orElse(null);
+        if(company == null) {
+            ctx.status(HttpStatus.NOT_FOUND).result("Company does not exist");
+            return;
+        }
+
+        // check quantity (optional
+        try {
+            if(quantity == null || quantity.isBlank()) {
+                nb = 1;
+            } else {
+                nb = Integer.parseUnsignedInt(quantity);
+            }
+        } catch (NumberFormatException e) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid quantity format");
+            return;
+        }
+
+        // check param aircraftICAO
+        if(aircraftICAO == null || aircraftICAO.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter aircraftICAO not empty");
+            return;
+        }
+
+        aircraftToSell = company.fleet.stream().filter(a -> a.aircraftICAO.equals(aircraftICAO)).findFirst().orElse(null);
+
+        if(aircraftToSell == null) {
+            ctx.status(HttpStatus.FAILED_DEPENDENCY).result("This company does not own this aircraft");
+            return;
+        }
+
+        if(aircraftToSell.quantity < nb) {
+            ctx.status(HttpStatus.BAD_REQUEST).result("You can't sell more than "+ aircraftToSell.quantity +" aircrafts");
+            return;
+        } else if(aircraftToSell.quantity == nb) {
+            company.fleet.remove(aircraftToSell);
+            ctx.status(HttpStatus.ACCEPTED).json(0);
+        } else {
+            aircraftToSell.quantity -= nb;
+            ctx.status(HttpStatus.ACCEPTED).json(aircraftToSell.quantity);
+        }
+
+        // update JSON file
+        try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
+             BufferedWriter bw = new BufferedWriter(writer);
+        ) {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(bw, companies);
+        } catch (IOException e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+            return;
+        }
+    }
 }

@@ -20,7 +20,7 @@ public class Main {
         app.delete("/company", CompanyController::deleteCompany);
 
         app.put("/company/{cmpICAO}/buy", CompanyController::addAircraft);
-        //app.put("/company/{cmpICAO}/sell", null);
+        app.put("/company/{cmpICAO}/sell", CompanyController::sellAircraft);
 
         app.start(PORT);
     }
