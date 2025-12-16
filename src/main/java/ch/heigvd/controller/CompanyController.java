@@ -77,6 +77,7 @@ public class CompanyController {
         List<String> fleetSizeFilters = ctx.queryParams("fleetSize");
 
         // sort conditions
+        // [companyICAO | name | country | fleetSize]
         List<String> sorts = ctx.queryParams("sort");
 
         // fetch datas
@@ -108,7 +109,6 @@ public class CompanyController {
         }
 
         // sort
-        // TODO : add sort by fleet size ?
         if (!sorts.isEmpty()) {
             Comparator<CompanyJSON> comparator = null;
             Comparator<CompanyJSON> c;
@@ -126,6 +126,9 @@ public class CompanyController {
                         break;
                     case "country":
                         c = Comparator.comparing(cmp -> cmp.country.toLowerCase());
+                        break;
+                    case "fleetSize":
+                        c = Comparator.comparing(CompanyController::fleetSize);
                         break;
                     default:
                         ctx.status(HttpStatus.BAD_REQUEST).result("Sort parameters incorrect");
@@ -390,7 +393,7 @@ public class CompanyController {
         }
 
         if(aircraftToSell.quantity < nb) {
-            ctx.status(HttpStatus.BAD_REQUEST).result("You can't sell more than "+ aircraftToSell.quantity +" aircrafts");
+            ctx.status(HttpStatus.CONFLICT).result("You can't sell more than "+ aircraftToSell.quantity +" aircrafts");
             return;
         } else if(aircraftToSell.quantity == nb) {
             company.fleet.remove(aircraftToSell);
