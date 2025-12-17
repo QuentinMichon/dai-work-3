@@ -84,11 +84,13 @@ public class CompanyController {
         }
 
         if(!fleetSizeFilters.isEmpty()) {
+
             for(String fleetSizeFilter : fleetSizeFilters) {
+                int fleetSize;
                 boolean less = fleetSizeFilter.startsWith("-");
                 fleetSizeFilter = less ? fleetSizeFilter.substring(1) : fleetSizeFilter;
                 try {
-                    int fleetSize = Integer.parseInt(fleetSizeFilter);
+                    fleetSize = Integer.parseInt(fleetSizeFilter);
                 } catch (NumberFormatException e) {
                     ctx.status(HttpStatus.BAD_REQUEST).result("Invalid quantity format");
                     return;
