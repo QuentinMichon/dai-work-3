@@ -20,7 +20,22 @@
   "maxCapacity" : 156
 }, {
   "constructor" : "Airbus",
-  "ICAO" : "A319",
+  "ICAO" : "A319-100",
   "range" : 6950,
   "maxCapacity" : 156
+}, {
+  "constructor" : "Boeing",
+  "ICAO" : "B737",
+  "range" : 6780,
+  "maxCapacity" : 123
+}, {
+  "constructor" : "Boeing",
+  "ICAO" : "B727",
+  "range" : 2800,
+  "maxCapacity" : 78
+}, {
+  "constructor" : "Boeing",
+  "ICAO" : "B707",
+  "range" : 5480,
+  "maxCapacity" : 160
 } ]

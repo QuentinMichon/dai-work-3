@@ -1,0 +1,34 @@
+[ {
+  "companyICAO" : "AFR",
+  "name" : "Air France",
+  "country" : "France",
+  "fleet" : [ {
+    "aircraftICAO" : "A319-100",
+    "quantity" : 43
+  }, {
+    "aircraftICAO" : "A388",
+    "quantity" : 41
+  } ]
+}, {
+  "companyICAO" : "SWR",
+  "name" : "SWISS",
+  "country" : "Switzerland",
+  "fleet" : [ ]
+}, {
+  "companyICAO" : "EZY",
+  "name" : "easyJet",
+  "country" : "United Kingdom",
+  "fleet" : [ {
+    "aircraftICAO" : "A319-100",
+    "quantity" : 61
+  }, {
+    "aircraftICAO" : "A318",
+    "quantity" : 83
+  }, {
+    "aircraftICAO" : "B748",
+    "quantity" : 68
+  }, {
+    "aircraftICAO" : "A388",
+    "quantity" : 20
+  } ]
+} ]
