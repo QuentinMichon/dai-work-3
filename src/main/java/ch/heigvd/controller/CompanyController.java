@@ -30,15 +30,8 @@ public class CompanyController {
     }
 
     private static int fleetSize(CompanyJSON company) {
-        if (company == null) return 0;
-        if (company.fleet.isEmpty()) return 0;
-
-        int count = 0;
-
-        for(CompanyJSON.AircraftTuple tuple : company.fleet) {
-            count += tuple.quantity;
-        }
-        return count;
+        if (company == null || company.fleet == null || company.fleet.isEmpty()) return 0;
+        return company.fleet.stream().mapToInt(t -> t.quantity).sum();
     }
 
     // update ICAO aircraft if the ICAO change
@@ -49,7 +42,7 @@ public class CompanyController {
         if(companies.isEmpty()) return true;
 
         for(CompanyJSON company : companies) {
-            if(company.fleet.isEmpty()) continue;
+            if(company.fleet == null || company.fleet.isEmpty()) continue;
 
             for(CompanyJSON.AircraftTuple tuple : company.fleet) {
                 if(tuple.aircraftICAO.equals(oldICAO)) {
@@ -94,7 +87,12 @@ public class CompanyController {
             for(String fleetSizeFilter : fleetSizeFilters) {
                 boolean less = fleetSizeFilter.startsWith("-");
                 fleetSizeFilter = less ? fleetSizeFilter.substring(1) : fleetSizeFilter;
-                int fleetSize = Integer.parseInt(fleetSizeFilter);
+                try {
+                    int fleetSize = Integer.parseInt(fleetSizeFilter);
+                } catch (NumberFormatException e) {
+                    ctx.status(HttpStatus.BAD_REQUEST).result("Invalid quantity format");
+                    return;
+                }
 
                 if(less) {
                     companies = companies.stream()
@@ -234,9 +232,13 @@ public class CompanyController {
         // delete company
         CompanyJSON companyRemoved = companies.stream()
                                               .filter(cmp -> cmp.companyICAO.equalsIgnoreCase(companyICAO))
-                                              .toList()
-                                              .getFirst();
+                                              .findFirst()
+                                              .orElse(null);
 
+        if(companyRemoved == null) {
+            ctx.status(HttpStatus.NOT_FOUND).result("This company does not exists");
+            return;
+        }
         companies.remove(companyRemoved);
 
         // update JSON file
