@@ -138,7 +138,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.airapi.entrypoints=https
-      - traefik.http.routers.airapi.rule=Host(`${TRAEFIK_FULLY_QUALIFIED_DOMAIN_NAME}`)
+      - traefik.http.routers.airapi.rule=Host(`${API_FULLY_QUALIFIED_DOMAIN_NAME}`)
       - traefik.http.routers.airapi.tls.certresolver=letsencrypt
       - traefik.http.services.airapi.loadbalancer.server.port=8080
 
