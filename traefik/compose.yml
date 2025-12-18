@@ -1,0 +1,45 @@
+networks:
+  traefik_network:
+    name: traefik_network
+
+services:
+  traefik:
+    image: traefik:${TRAEFIK_IMAGE_VERSION}
+    command:
+      # Uncomment next line when testing
+      # - --log.level=DEBUG
+      - --api.dashboard=${TRAEFIK_ENABLE_DASHBOARD}
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=traefik_network
+      ## Entrypoints
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      #  Redirect all HTTP traffic to HTTPS
+      - --entrypoints.http.http.redirections.entrypoint.to=https
+      - --entrypoints.http.http.redirections.entrypoint.scheme=https
+      - --entrypoints.http.http.redirections.entrypoint.permanent=true
+      # Enable TLS for all HTTPS traffic
+      - --entrypoints.https.http.tls=true
+      - --entrypoints.https.http.tls.certresolver=letsencrypt
+      ## Certificates
+      # Uncomment next line when testing
+      # - --certificatesResolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+    restart: unless-stopped
+    networks:
+      - traefik_network
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    labels:
+      - traefik.enable=true
+      ## Routers
+      - traefik.http.routers.traefik.entrypoints=https
+      - traefik.http.routers.traefik.rule=Host(`${TRAEFIK_FULLY_QUALIFIED_DOMAIN_NAME}`)
+      - traefik.http.routers.traefik.service=api@internal
