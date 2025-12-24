@@ -36,27 +36,33 @@ public class CompanyController {
 
     // update ICAO aircraft if the ICAO change
     public static boolean updateAircraftICAO(String oldICAO, String newICAO) {
-        List<CompanyJSON> companies = readCompany(JSON_FILEPATH);
-        ObjectMapper mapper = new ObjectMapper();
+        MutexAPI.LOCK.lock();
 
-        if(companies.isEmpty()) return true;
+        try {
+            List<CompanyJSON> companies = readCompany(JSON_FILEPATH);
+            ObjectMapper mapper = new ObjectMapper();
 
-        for(CompanyJSON company : companies) {
-            if(company.fleet == null || company.fleet.isEmpty()) continue;
+            if(companies.isEmpty()) return true;
 
-            for(CompanyJSON.AircraftTuple tuple : company.fleet) {
-                if(tuple.aircraftICAO.equals(oldICAO)) {
-                    tuple.aircraftICAO = newICAO;
+            for(CompanyJSON company : companies) {
+                if(company.fleet == null || company.fleet.isEmpty()) continue;
+
+                for(CompanyJSON.AircraftTuple tuple : company.fleet) {
+                    if(tuple.aircraftICAO.equals(oldICAO)) {
+                        tuple.aircraftICAO = newICAO;
+                    }
                 }
             }
-        }
 
-        // write the avion.json
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(JSON_FILEPATH), StandardCharsets.UTF_8)) {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(writer, companies);
-            return true;
-        } catch (IOException e) {
-            return false;
+            // write the avion.json
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(JSON_FILEPATH), StandardCharsets.UTF_8)) {
+                mapper.writerWithDefaultPrettyPrinter().writeValue(writer, companies);
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        } finally {
+            MutexAPI.LOCK.unlock();
         }
     }
 
