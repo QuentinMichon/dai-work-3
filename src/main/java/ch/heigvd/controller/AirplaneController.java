@@ -19,17 +19,23 @@ public class AirplaneController {
     public static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/avion.json";
 
     public static List<AvionJSON> readAvions(String filename) {
-        ObjectMapper mapper = new ObjectMapper();
+        MutexAPI.LOCK.lock();
 
-        try(Reader reader = new FileReader(filename, StandardCharsets.UTF_8);
-            BufferedReader avionJSON = new BufferedReader(reader))
-        {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
 
-            return mapper.readValue(avionJSON, new TypeReference<>(){});
+            try(Reader reader = new FileReader(filename, StandardCharsets.UTF_8);
+                BufferedReader avionJSON = new BufferedReader(reader))
+            {
 
-        } catch (IOException e) {
-            System.err.println("Error reading : " + filename + e);
-            return List.of();
+                return mapper.readValue(avionJSON, new TypeReference<>(){});
+
+            } catch (IOException e) {
+                System.err.println("Error reading : " + filename + e);
+                return List.of();
+            }
+        } finally {
+            MutexAPI.LOCK.unlock();
         }
     }
 
