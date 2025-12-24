@@ -37,174 +37,198 @@ public class AirplaneController {
 
     public static void getAvions(Context ctx) {
 
-        List<AvionJSON> list;
+        // MUTEX LOCK
+        MutexAPI.LOCK.lock();
 
-        // filters
-        String constructor = ctx.queryParam("constructor");
-        List<String> paramCapacity = ctx.queryParams("capacity");
-        String paramRange = ctx.queryParam("range");
+        try {
+            List<AvionJSON> list;
 
-        // sort conditions
-        List<String> sorts = ctx.queryParams("sort");
+            // filters
+            String constructor = ctx.queryParam("constructor");
+            List<String> paramCapacity = ctx.queryParams("capacity");
+            String paramRange = ctx.queryParam("range");
 
-        // fetch data and apply filter as AND condition
-        if (constructor == null) {
-            list = readAvions(JSON_FILEPATH);
-        } else {
-            list = readAvions(JSON_FILEPATH)
-                    .stream()
-                    .filter(a -> constructor.equalsIgnoreCase(a.constructor))
-                    .collect(Collectors.toList());
-        }
+            // sort conditions
+            List<String> sorts = ctx.queryParams("sort");
 
-        if(!paramCapacity.isEmpty()) {
-            for (String paramCap : paramCapacity) {
-                boolean less = paramCap.startsWith("-");
-                paramCap = less ? paramCap.substring(1) : paramCap;
-                int capacity = Integer.parseInt(paramCap);
+            // fetch data and apply filter as AND condition
+            if (constructor == null) {
+                list = readAvions(JSON_FILEPATH);
+            } else {
+                list = readAvions(JSON_FILEPATH)
+                        .stream()
+                        .filter(a -> constructor.equalsIgnoreCase(a.constructor))
+                        .collect(Collectors.toList());
+            }
+
+            if(!paramCapacity.isEmpty()) {
+                for (String paramCap : paramCapacity) {
+                    boolean less = paramCap.startsWith("-");
+                    paramCap = less ? paramCap.substring(1) : paramCap;
+                    int capacity = Integer.parseInt(paramCap);
+
+                    if(less) {
+                        list = list.stream().filter(a -> a.maxCapacity <= capacity).collect(Collectors.toList());;
+                    } else {
+                        list = list.stream().filter(a -> a.maxCapacity >= capacity).collect(Collectors.toList());;
+                    }
+                }
+            }
+
+            if(paramRange != null) {
+                boolean less = paramRange.startsWith("-");
+                paramRange = less ? paramRange.substring(1) : paramRange;
+                int range = Integer.parseInt(paramRange);
 
                 if(less) {
-                    list = list.stream().filter(a -> a.maxCapacity <= capacity).collect(Collectors.toList());;
+                    list = list.stream().filter(a -> a.range <= range).collect(Collectors.toList());
                 } else {
-                    list = list.stream().filter(a -> a.maxCapacity >= capacity).collect(Collectors.toList());;
+                    list = list.stream().filter(a -> a.range >= range).collect(Collectors.toList());
                 }
             }
-        }
-
-        if(paramRange != null) {
-            boolean less = paramRange.startsWith("-");
-            paramRange = less ? paramRange.substring(1) : paramRange;
-            int range = Integer.parseInt(paramRange);
-
-            if(less) {
-                list = list.stream().filter(a -> a.range <= range).collect(Collectors.toList());
-            } else {
-                list = list.stream().filter(a -> a.range >= range).collect(Collectors.toList());
-            }
-        }
 
 
-        // SORT
-        if (!sorts.isEmpty()) {
-            Comparator<AvionJSON> comparator = null;
-            Comparator<AvionJSON> c;
+            // SORT
+            if (!sorts.isEmpty()) {
+                Comparator<AvionJSON> comparator = null;
+                Comparator<AvionJSON> c;
 
-            for (String s : sorts) {
-                boolean desc = s.startsWith("-");
-                String field = desc ? s.substring(1) : s;
+                for (String s : sorts) {
+                    boolean desc = s.startsWith("-");
+                    String field = desc ? s.substring(1) : s;
 
-                switch (field) {
-                    case "constructor":
-                        c = Comparator.comparing(a -> a.constructor.toLowerCase());
-                        break;
-                    case "range":
-                        c = Comparator.comparingInt(a -> a.range);
-                        break;
-                    case "icao":
-                        c = Comparator.comparing(a -> a.ICAO.toLowerCase());
-                        break;
-                    default:
-                        ctx.status(HttpStatus.BAD_REQUEST).result("Sort parameters incorrect");
-                        return;
+                    switch (field) {
+                        case "constructor":
+                            c = Comparator.comparing(a -> a.constructor.toLowerCase());
+                            break;
+                        case "range":
+                            c = Comparator.comparingInt(a -> a.range);
+                            break;
+                        case "icao":
+                            c = Comparator.comparing(a -> a.ICAO.toLowerCase());
+                            break;
+                        default:
+                            ctx.status(HttpStatus.BAD_REQUEST).result("Sort parameters incorrect");
+                            return;
+                    }
+
+                    if (desc) c = c.reversed();
+                    comparator = (comparator == null) ? c : comparator.thenComparing(c);
                 }
 
-                if (desc) c = c.reversed();
-                comparator = (comparator == null) ? c : comparator.thenComparing(c);
+                if(comparator != null) {
+                    list.sort(comparator);
+                }
             }
 
-            if(comparator != null) {
-                list.sort(comparator);
-            }
+            // send data
+            ctx.json(list);
+        } finally {
+            MutexAPI.LOCK.unlock();
         }
 
-        // send data
-        ctx.json(list);
     }
 
     public static void postAvion(Context ctx) {
-        ObjectMapper mapper = new ObjectMapper();
 
-        // parse JSON body -> AvionJSON
-        AvionJSON newAvion;
+        // MUTEX LOCK
+        MutexAPI.LOCK.lock();
+
         try {
-            newAvion = ctx.bodyAsClass(AvionJSON.class);
-        } catch (Exception e) {
-            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
-            return;
+            ObjectMapper mapper = new ObjectMapper();
+
+            // parse JSON body -> AvionJSON
+            AvionJSON newAvion;
+            try {
+                newAvion = ctx.bodyAsClass(AvionJSON.class);
+            } catch (Exception e) {
+                ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
+                return;
+            }
+
+            // validation
+            if (newAvion == null
+                    || newAvion.constructor == null || newAvion.constructor.isBlank()
+                    || newAvion.ICAO == null || newAvion.ICAO.isBlank()
+                    || newAvion.range <= 0
+                    || newAvion.maxCapacity <= 0) {
+                ctx.status(HttpStatus.BAD_REQUEST).result("Missing/invalid fields (constructor, ICAO, range>0, maxCapacity>0)");
+                return;
+            }
+
+            // fetch data
+            List<AvionJSON> avions = readAvions(JSON_FILEPATH);
+
+            // check if the ICAO provided is UNIQUE ?
+            boolean exists = avions.stream()
+                    .anyMatch(a -> a.ICAO != null && a.ICAO.equalsIgnoreCase(newAvion.ICAO));
+            if (exists) {
+                ctx.result("An airplane with this ICAO already exists")
+                        .status(HttpStatus.CONFLICT);
+                return;
+            }
+
+            // add to the list
+            List<AvionJSON> updated = new java.util.ArrayList<>(avions);
+            updated.add(newAvion);
+
+            // write the avion.json
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(JSON_FILEPATH), StandardCharsets.UTF_8)) {
+                mapper.writerWithDefaultPrettyPrinter().writeValue(writer, updated);
+            } catch (IOException e) {
+                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                return;
+            }
+
+            // send the airplane added to confirm the process
+            ctx.status(HttpStatus.CREATED).json(newAvion);
+        } finally {
+            MutexAPI.LOCK.unlock();
         }
-
-        // validation
-        if (newAvion == null
-                || newAvion.constructor == null || newAvion.constructor.isBlank()
-                || newAvion.ICAO == null || newAvion.ICAO.isBlank()
-                || newAvion.range <= 0
-                || newAvion.maxCapacity <= 0) {
-            ctx.status(HttpStatus.BAD_REQUEST).result("Missing/invalid fields (constructor, ICAO, range>0, maxCapacity>0)");
-            return;
-        }
-
-        // fetch data
-        List<AvionJSON> avions = readAvions(JSON_FILEPATH);
-
-        // check if the ICAO provided is UNIQUE ?
-        boolean exists = avions.stream()
-                .anyMatch(a -> a.ICAO != null && a.ICAO.equalsIgnoreCase(newAvion.ICAO));
-        if (exists) {
-            ctx.result("An airplane with this ICAO already exists")
-                    .status(HttpStatus.CONFLICT);
-            return;
-        }
-
-        // add to the list
-        List<AvionJSON> updated = new java.util.ArrayList<>(avions);
-        updated.add(newAvion);
-
-        // write the avion.json
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(JSON_FILEPATH), StandardCharsets.UTF_8)) {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(writer, updated);
-        } catch (IOException e) {
-            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
-            return;
-        }
-
-        // send the airplane added to confirm the process
-        ctx.status(HttpStatus.CREATED).json(newAvion);
     }
 
     public static void deleteAvion(Context ctx) {
-        ObjectMapper mapper = new ObjectMapper();
 
-        // read params
-        //String icao = ctx.queryParam("icao");
-        String constructor = ctx.queryParam("constructor");
+        // MUTEX LOCK
+        MutexAPI.LOCK.lock();
 
-        // control params
-        if (constructor == null) {
-            ctx.result("Invalid constructor need parameter <constructor> xor <icao>")
-                    .status(HttpStatus.BAD_REQUEST);
-            return;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+
+            // read params
+            //String icao = ctx.queryParam("icao");
+            String constructor = ctx.queryParam("constructor");
+
+            // control params
+            if (constructor == null) {
+                ctx.result("Invalid constructor need parameter <constructor> xor <icao>")
+                        .status(HttpStatus.BAD_REQUEST);
+                return;
+            }
+
+            // fetch current data
+            List<AvionJSON> avions = readAvions(JSON_FILEPATH);
+
+            // delete airplanes
+            List<AvionJSON> removed = avions.stream().filter(a -> constructor.equalsIgnoreCase(a.constructor)).toList();
+
+            avions.removeAll(removed);
+
+            // update JSON file
+            try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
+                 BufferedWriter bw = new BufferedWriter(writer);
+            ) {
+                mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
+            } catch (IOException e) {
+                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                return;
+            }
+
+            // send the removed airplanes
+            ctx.json(removed);
+        } finally {
+            MutexAPI.LOCK.unlock();
         }
-
-        // fetch current data
-        List<AvionJSON> avions = readAvions(JSON_FILEPATH);
-
-        // delete airplanes
-        List<AvionJSON> removed = avions.stream().filter(a -> constructor.equalsIgnoreCase(a.constructor)).toList();
-
-        avions.removeAll(removed);
-
-        // update JSON file
-        try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
-            BufferedWriter bw = new BufferedWriter(writer);
-        ) {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
-        } catch (IOException e) {
-            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
-            return;
-        }
-
-        // send the removed airplanes
-        ctx.json(removed);
     }
 
     /**
@@ -216,94 +240,102 @@ public class AirplaneController {
      *  ICAO verification d'unicité
      **/
     public static void putAvion(Context ctx) {
-        ObjectMapper mapper = new ObjectMapper();
 
-        String paramICAO = ctx.queryParam("icao");
+        // MUTEX LOCK
+        MutexAPI.LOCK.lock();
 
-        if (paramICAO == null) {
-            ctx.result("Invalid icao need parameter <icao>").status(HttpStatus.BAD_REQUEST);
-            return;
-        }
-
-        // fetch data
-        List<AvionJSON> avions = readAvions(JSON_FILEPATH);
-        // find requested airplane index (use chatGPT 5.2)
-        int index = IntStream.range(0, avions.size())
-                .filter(i -> avions.get(i).ICAO.equalsIgnoreCase(paramICAO))
-                .findFirst()
-                .orElse(-1);
-
-        if(index == -1) {
-            ctx.result("No airplane with this ICAO exists").status(HttpStatus.NO_CONTENT);
-            return;
-        }
-
-        AvionJSON newAvion;
         try {
-            newAvion = ctx.bodyAsClass(AvionJSON.class);
-        } catch (Exception e) {
-            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
-            return;
-        }
-        AvionJSON oldAvion = avions.get(index);
+            ObjectMapper mapper = new ObjectMapper();
 
-        // check if ICAO is modified AND if the new icao is unique
-        if(newAvion.ICAO != null) {
-            if (!avions.stream()
-                    .filter(a -> a.ICAO.equalsIgnoreCase(newAvion.ICAO))
-                    .toList()
-                    .isEmpty()
-                    && !newAvion.ICAO.equals(oldAvion.ICAO)) {
-                ctx.result("An airplane with this ICAO already exists").status(HttpStatus.CONFLICT);
+            String paramICAO = ctx.queryParam("icao");
+
+            if (paramICAO == null) {
+                ctx.result("Invalid icao need parameter <icao>").status(HttpStatus.BAD_REQUEST);
                 return;
-            } else {
-                // update the ICAO into the companies fleets
-                boolean ret = CompanyController.updateAircraftICAO(oldAvion.ICAO, newAvion.ICAO);
-                if(!ret) {
-                    ctx.result("Companies can't be updated").status(HttpStatus.FAILED_DEPENDENCY);
+            }
+
+            // fetch data
+            List<AvionJSON> avions = readAvions(JSON_FILEPATH);
+            // find requested airplane index (use chatGPT 5.2)
+            int index = IntStream.range(0, avions.size())
+                    .filter(i -> avions.get(i).ICAO.equalsIgnoreCase(paramICAO))
+                    .findFirst()
+                    .orElse(-1);
+
+            if(index == -1) {
+                ctx.result("No airplane with this ICAO exists").status(HttpStatus.NO_CONTENT);
+                return;
+            }
+
+            AvionJSON newAvion;
+            try {
+                newAvion = ctx.bodyAsClass(AvionJSON.class);
+            } catch (Exception e) {
+                ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
+                return;
+            }
+            AvionJSON oldAvion = avions.get(index);
+
+            // check if ICAO is modified AND if the new icao is unique
+            if(newAvion.ICAO != null) {
+                if (!avions.stream()
+                        .filter(a -> a.ICAO.equalsIgnoreCase(newAvion.ICAO))
+                        .toList()
+                        .isEmpty()
+                        && !newAvion.ICAO.equals(oldAvion.ICAO)) {
+                    ctx.result("An airplane with this ICAO already exists").status(HttpStatus.CONFLICT);
+                    return;
+                } else {
+                    // update the ICAO into the companies fleets
+                    boolean ret = CompanyController.updateAircraftICAO(oldAvion.ICAO, newAvion.ICAO);
+                    if(!ret) {
+                        ctx.result("Companies can't be updated").status(HttpStatus.FAILED_DEPENDENCY);
+                    }
                 }
+            } else {
+                // no change
+                newAvion.ICAO = oldAvion.ICAO;
             }
-        } else {
-            // no change
-            newAvion.ICAO = oldAvion.ICAO;
-        }
 
-        if(newAvion.constructor == null) {
-            newAvion.constructor = oldAvion.constructor;
-        }
+            if(newAvion.constructor == null) {
+                newAvion.constructor = oldAvion.constructor;
+            }
 
-        if(newAvion.range != null) {
-            if(newAvion.range <= 0) {
-                ctx.result("Invalid range, it must be a positive number").status(HttpStatus.BAD_REQUEST);
+            if(newAvion.range != null) {
+                if(newAvion.range <= 0) {
+                    ctx.result("Invalid range, it must be a positive number").status(HttpStatus.BAD_REQUEST);
+                    return;
+                }
+            } else {
+                newAvion.range = oldAvion.range;
+            }
+
+            if(newAvion.maxCapacity != null) {
+                if(newAvion.maxCapacity <= 0) {
+                    ctx.result("Invalid maximum airplane capacity, it must be a positive number").status(HttpStatus.BAD_REQUEST);
+                    return;
+                }
+            } else {
+                newAvion.maxCapacity = oldAvion.maxCapacity;
+            }
+
+            // update into the list
+            avions.set(index, newAvion);
+
+            // update JSON file
+            try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
+                 BufferedWriter bw = new BufferedWriter(writer);
+            ) {
+                mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
+            } catch (IOException e) {
+                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
                 return;
             }
-        } else {
-            newAvion.range = oldAvion.range;
+
+            // return the new airplane
+            ctx.status(HttpStatus.ACCEPTED).json(newAvion);
+        } finally {
+            MutexAPI.LOCK.unlock();
         }
-
-        if(newAvion.maxCapacity != null) {
-            if(newAvion.maxCapacity <= 0) {
-                ctx.result("Invalid maximum airplane capacity, it must be a positive number").status(HttpStatus.BAD_REQUEST);
-                return;
-            }
-        } else {
-            newAvion.maxCapacity = oldAvion.maxCapacity;
-        }
-
-        // update into the list
-        avions.set(index, newAvion);
-
-        // update JSON file
-        try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
-             BufferedWriter bw = new BufferedWriter(writer);
-        ) {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
-        } catch (IOException e) {
-            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
-            return;
-        }
-
-        // return the new airplane
-        ctx.status(HttpStatus.ACCEPTED).json(newAvion);
     }
 }
