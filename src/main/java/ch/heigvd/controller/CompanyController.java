@@ -6,9 +6,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.NotFoundResponse;
+import io.javalin.http.NotModifiedResponse;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +20,10 @@ import java.util.stream.Collectors;
 public class CompanyController {
 
     public static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/company.json";
+
+    // ### CACHE ###
+    private static final List<CompanyJSON> cachedCompanies = new ArrayList<>();
+    private static LocalDateTime lastUpdate;
 
     public static List<CompanyJSON> readCompany(String filename) {
         ObjectMapper mapper = new ObjectMapper();
@@ -35,6 +43,7 @@ public class CompanyController {
     }
 
     // update ICAO aircraft if the ICAO change
+    // TODO repérer si un changement à été fait pour invalider le cache
     public static boolean updateAircraftICAO(String oldICAO, String newICAO) {
         MutexAPI.LOCK.lock();
 
@@ -74,87 +83,28 @@ public class CompanyController {
         try {
             List<CompanyJSON> companies;
 
-            // filters
-            String countryFilter = ctx.queryParam("country");
-            List<String> fleetSizeFilters = ctx.queryParams("fleetSize");
+            // get header : If-Modified-Since
+            LocalDateTime headerIfModifiedSince = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
 
-            // sort conditions
-            // [companyICAO | name | country | fleetSize]
-            List<String> sorts = ctx.queryParams("sort");
+            if(headerIfModifiedSince == null || headerIfModifiedSince.isBefore(lastUpdate)) {
+                // ### CACHE MISS ###
+                // fetch datas
+                companies = readCompany(JSON_FILEPATH);
 
-            // fetch datas
-            companies = readCompany(JSON_FILEPATH);
+                // sort data by its ICAO
+                Comparator<CompanyJSON> comparator = Comparator.comparing(cmp -> cmp.companyICAO.toLowerCase());
+                companies.sort(comparator);
 
-            // filter
-            if (countryFilter != null) {
-                companies = companies.stream()
-                        .filter(cmp -> cmp.country.equalsIgnoreCase(countryFilter))
-                        .collect(Collectors.toList());
+                // save the timestamp
+                lastUpdate = LocalDateTime.now();
+
+                // send data
+                ctx.json(companies).header("Last-Modified", lastUpdate.toString());
+            } else {
+                // ### CACHE HIT ###
+                ctx.status(HttpStatus.NOT_MODIFIED).header("Last-Modified", lastUpdate.toString());
             }
 
-            if(!fleetSizeFilters.isEmpty()) {
-
-                for(String fleetSizeFilter : fleetSizeFilters) {
-                    int fleetSize;
-                    boolean less = fleetSizeFilter.startsWith("-");
-                    fleetSizeFilter = less ? fleetSizeFilter.substring(1) : fleetSizeFilter;
-                    try {
-                        fleetSize = Integer.parseInt(fleetSizeFilter);
-                    } catch (NumberFormatException e) {
-                        ctx.status(HttpStatus.BAD_REQUEST).result("Invalid quantity format");
-                        return;
-                    }
-
-                    if(less) {
-                        companies = companies.stream()
-                                .filter(cmp -> fleetSize(cmp) <= fleetSize)
-                                .collect(Collectors.toList());
-                    } else {
-                        companies = companies.stream()
-                                .filter(cmp -> fleetSize(cmp) >= fleetSize)
-                                .collect(Collectors.toList());
-                    }
-                }
-            }
-
-            // sort
-            if (!sorts.isEmpty()) {
-                Comparator<CompanyJSON> comparator = null;
-                Comparator<CompanyJSON> c;
-
-                for (String s : sorts) {
-                    boolean desc = s.startsWith("-");
-                    String field = desc ? s.substring(1) : s;
-
-                    switch (field) {
-                        case "companyICAO":
-                            c = Comparator.comparing(cmp -> cmp.companyICAO.toLowerCase());
-                            break;
-                        case "name":
-                            c = Comparator.comparing(cmp -> cmp.name.toLowerCase());
-                            break;
-                        case "country":
-                            c = Comparator.comparing(cmp -> cmp.country.toLowerCase());
-                            break;
-                        case "fleetSize":
-                            c = Comparator.comparing(CompanyController::fleetSize);
-                            break;
-                        default:
-                            ctx.status(HttpStatus.BAD_REQUEST).result("Sort parameters incorrect");
-                            return;
-                    }
-
-                    if (desc) c = c.reversed();
-                    comparator = (comparator == null) ? c : comparator.thenComparing(c);
-                }
-
-                if(comparator != null) {
-                    companies.sort(comparator);
-                }
-            }
-
-            // send data
-            ctx.json(companies);
         } finally {
             MutexAPI.LOCK.unlock();
         }
@@ -275,6 +225,9 @@ public class CompanyController {
                 return;
             }
 
+            // update cache timestamp
+            lastUpdate = LocalDateTime.now();
+
             // send the removed company
             ctx.json(companyRemoved);
         } finally {
@@ -369,6 +322,9 @@ public class CompanyController {
                 return;
             }
 
+            // update cache timestamp
+            lastUpdate = LocalDateTime.now();
+
             ctx.status(HttpStatus.ACCEPTED).json(company);
         } finally {
             MutexAPI.LOCK.unlock();
@@ -437,10 +393,8 @@ public class CompanyController {
                 return;
             } else if(aircraftToSell.quantity == nb) {
                 company.fleet.remove(aircraftToSell);
-                ctx.status(HttpStatus.ACCEPTED).json(0);
             } else {
                 aircraftToSell.quantity -= nb;
-                ctx.status(HttpStatus.ACCEPTED).json(aircraftToSell.quantity);
             }
 
             // update JSON file
@@ -452,6 +406,12 @@ public class CompanyController {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
                 return;
             }
+
+            // update cache timestamp
+            lastUpdate = LocalDateTime.now();
+
+            ctx.json(company).status(HttpStatus.ACCEPTED);
+
         } finally {
             MutexAPI.LOCK.unlock();
         }

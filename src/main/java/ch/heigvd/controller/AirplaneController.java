@@ -11,12 +11,15 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.time.LocalDateTime;
 
 public class AirplaneController {
 
     public static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/avion.json";
+    private static final ConcurrentHashMap<String, LocalDateTime> airplanesCache = new ConcurrentHashMap<>();
 
     public static List<AvionJSON> readAvions(String filename) {
         MutexAPI.LOCK.lock();
@@ -92,6 +95,7 @@ public class AirplaneController {
                     list = list.stream().filter(a -> a.range >= range).collect(Collectors.toList());
                 }
             }
+
 
 
             // SORT
@@ -186,7 +190,12 @@ public class AirplaneController {
                 return;
             }
 
+            // caching
+            LocalDateTime now = LocalDateTime.now();
+            airplanesCache.put(newAvion.ICAO, now);
+
             // send the airplane added to confirm the process
+            ctx.header("Last-Modified", String.valueOf(now));
             ctx.status(HttpStatus.CREATED).json(newAvion);
         } finally {
             MutexAPI.LOCK.unlock();
@@ -202,11 +211,11 @@ public class AirplaneController {
             ObjectMapper mapper = new ObjectMapper();
 
             // read params
-            //String icao = ctx.queryParam("icao");
-            String constructor = ctx.queryParam("constructor");
+            String icao = ctx.queryParam("icao");
+            //String constructor = ctx.queryParam("constructor");
 
             // control params
-            if (constructor == null) {
+            if (icao == null) {
                 ctx.result("Invalid constructor need parameter <constructor> xor <icao>")
                         .status(HttpStatus.BAD_REQUEST);
                 return;
@@ -216,7 +225,7 @@ public class AirplaneController {
             List<AvionJSON> avions = readAvions(JSON_FILEPATH);
 
             // delete airplanes
-            List<AvionJSON> removed = avions.stream().filter(a -> constructor.equalsIgnoreCase(a.constructor)).toList();
+            List<AvionJSON> removed = avions.stream().filter(a -> icao.equalsIgnoreCase(a.ICAO)).toList();
 
             avions.removeAll(removed);
 
