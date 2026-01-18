@@ -278,7 +278,7 @@ public class AirplaneController {
                     .orElse(-1);
 
             if(index == -1) {
-                ctx.result("No airplane with this ICAO exists").status(HttpStatus.NO_CONTENT);
+                ctx.result("No airplane with this ICAO exists").status(HttpStatus.NOT_FOUND);
                 return;
             }
 

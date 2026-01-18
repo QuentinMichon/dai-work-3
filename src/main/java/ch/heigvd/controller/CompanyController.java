@@ -1,5 +1,6 @@
 package ch.heigvd.controller;
 
+import ch.heigvd.Main;
 import ch.heigvd.types.AvionJSON;
 import ch.heigvd.types.CompanyJSON;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -22,8 +23,7 @@ public class CompanyController {
     public static final String JSON_FILEPATH = "src/main/java/ch/heigvd/datas/company.json";
 
     // ### CACHE ###
-    private static final List<CompanyJSON> cachedCompanies = new ArrayList<>();
-    private static LocalDateTime lastUpdate;
+    private static LocalDateTime lastUpdate = LocalDateTime.now();
 
     public static List<CompanyJSON> readCompany(String filename) {
         ObjectMapper mapper = new ObjectMapper();
@@ -43,7 +43,6 @@ public class CompanyController {
     }
 
     // update ICAO aircraft if the ICAO change
-    // TODO repérer si un changement à été fait pour invalider le cache
     public static boolean updateAircraftICAO(String oldICAO, String newICAO) {
         MutexAPI.LOCK.lock();
 
@@ -59,6 +58,8 @@ public class CompanyController {
                 for(CompanyJSON.AircraftTuple tuple : company.fleet) {
                     if(tuple.aircraftICAO.equals(oldICAO)) {
                         tuple.aircraftICAO = newICAO;
+                        // update last updated cache info
+                        lastUpdate = LocalDateTime.now();
                     }
                 }
             }
@@ -88,6 +89,7 @@ public class CompanyController {
 
             if(headerIfModifiedSince == null || headerIfModifiedSince.isBefore(lastUpdate)) {
                 // ### CACHE MISS ###
+                Main.logger("getCompany", "CACHE MISS");
                 // fetch datas
                 companies = readCompany(JSON_FILEPATH);
 
@@ -102,6 +104,7 @@ public class CompanyController {
                 ctx.json(companies).header("Last-Modified", lastUpdate.toString());
             } else {
                 // ### CACHE HIT ###
+                Main.logger("getCompany", "CACHE HIT");
                 ctx.status(HttpStatus.NOT_MODIFIED).header("Last-Modified", lastUpdate.toString());
             }
 
