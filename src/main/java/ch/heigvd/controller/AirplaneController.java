@@ -1,5 +1,6 @@
 package ch.heigvd.controller;
 
+import ch.heigvd.Main;
 import com.fasterxml.jackson.core.type.TypeReference;
 import ch.heigvd.types.AvionJSON;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -119,6 +120,7 @@ public class AirplaneController {
                             break;
                         default:
                             ctx.status(HttpStatus.BAD_REQUEST).result("Sort parameters incorrect");
+                            Main.logger("getAvions", "Sort parameters incorrect " + field + " unknown" );
                             return;
                     }
 
@@ -133,6 +135,7 @@ public class AirplaneController {
 
             // send data
             ctx.json(list);
+            Main.logger("getAvions", "Successfully fetch Avions");
         } finally {
             MutexAPI.LOCK.unlock();
         }
@@ -153,6 +156,7 @@ public class AirplaneController {
                 newAvion = ctx.bodyAsClass(AvionJSON.class);
             } catch (Exception e) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
+                Main.logger("postAvion", "Invalid JSON body");
                 return;
             }
 
@@ -163,6 +167,7 @@ public class AirplaneController {
                     || newAvion.range <= 0
                     || newAvion.maxCapacity <= 0) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Missing/invalid fields (constructor, ICAO, range>0, maxCapacity>0)");
+                Main.logger("postAvion", "Missing/invalid fields (constructor, ICAO, range>0, maxCapacity>0)");
                 return;
             }
 
@@ -173,8 +178,9 @@ public class AirplaneController {
             boolean exists = avions.stream()
                     .anyMatch(a -> a.ICAO != null && a.ICAO.equalsIgnoreCase(newAvion.ICAO));
             if (exists) {
-                ctx.result("An airplane with this ICAO already exists")
+                ctx.result("An airplane with this ICAO already exists : " + newAvion.ICAO)
                         .status(HttpStatus.CONFLICT);
+                Main.logger("postAvion", "An airplane with this ICAO already exists : " + newAvion.ICAO);
                 return;
             }
 
@@ -187,6 +193,7 @@ public class AirplaneController {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(writer, updated);
             } catch (IOException e) {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                Main.logger("postAvion", "Failed to write JSON file");
                 return;
             }
 
@@ -197,6 +204,7 @@ public class AirplaneController {
             // send the airplane added to confirm the process
             ctx.header("Last-Modified", String.valueOf(now));
             ctx.status(HttpStatus.CREATED).json(newAvion);
+            Main.logger("postAvion", "Successfully posted Avion");
         } finally {
             MutexAPI.LOCK.unlock();
         }
@@ -218,6 +226,7 @@ public class AirplaneController {
             if (icao == null) {
                 ctx.result("Invalid constructor need parameter <constructor> xor <icao>")
                         .status(HttpStatus.BAD_REQUEST);
+                Main.logger("deleteAvion", "Invalid constructorneed parameter <constructor> xor <icao>");
                 return;
             }
 
@@ -236,11 +245,13 @@ public class AirplaneController {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
             } catch (IOException e) {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                Main.logger("deleteAvion", "Failed to write JSON file");
                 return;
             }
 
             // send the removed airplanes
             ctx.json(removed);
+            Main.logger("deleteAvion", "Successfully deleted Avion");
         } finally {
             MutexAPI.LOCK.unlock();
         }
@@ -266,6 +277,7 @@ public class AirplaneController {
 
             if (paramICAO == null) {
                 ctx.result("Invalid icao need parameter <icao>").status(HttpStatus.BAD_REQUEST);
+                Main.logger("putAvion", "Invalid icao need parameter <icao>");
                 return;
             }
 
@@ -279,6 +291,7 @@ public class AirplaneController {
 
             if(index == -1) {
                 ctx.result("No airplane with this ICAO exists").status(HttpStatus.NOT_FOUND);
+                Main.logger("putAvion", "No airplane with this ICAO exists");
                 return;
             }
 
@@ -287,6 +300,7 @@ public class AirplaneController {
                 newAvion = ctx.bodyAsClass(AvionJSON.class);
             } catch (Exception e) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
+                Main.logger("putAvion", "Invalid JSON body");
                 return;
             }
             AvionJSON oldAvion = avions.get(index);
@@ -299,12 +313,14 @@ public class AirplaneController {
                         .isEmpty()
                         && !newAvion.ICAO.equals(oldAvion.ICAO)) {
                     ctx.result("An airplane with this ICAO already exists").status(HttpStatus.CONFLICT);
+                    Main.logger("putAvion", "An airplane with this ICAO already exists");
                     return;
                 } else {
                     // update the ICAO into the companies fleets
                     boolean ret = CompanyController.updateAircraftICAO(oldAvion.ICAO, newAvion.ICAO);
                     if(!ret) {
                         ctx.result("Companies can't be updated").status(HttpStatus.FAILED_DEPENDENCY);
+                        Main.logger("putAvion", "Companies can't be updated");
                     }
                 }
             } else {
@@ -319,6 +335,7 @@ public class AirplaneController {
             if(newAvion.range != null) {
                 if(newAvion.range <= 0) {
                     ctx.result("Invalid range, it must be a positive number").status(HttpStatus.BAD_REQUEST);
+                    Main.logger("putAvion", "Invalid range");
                     return;
                 }
             } else {
@@ -328,6 +345,7 @@ public class AirplaneController {
             if(newAvion.maxCapacity != null) {
                 if(newAvion.maxCapacity <= 0) {
                     ctx.result("Invalid maximum airplane capacity, it must be a positive number").status(HttpStatus.BAD_REQUEST);
+                    Main.logger("putAvion", "Invalid maximum airplane capacity");
                     return;
                 }
             } else {
@@ -344,11 +362,13 @@ public class AirplaneController {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(bw, avions);
             } catch (IOException e) {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                Main.logger("putAvion", "Failed to write JSON file");
                 return;
             }
 
             // return the new airplane
             ctx.status(HttpStatus.ACCEPTED).json(newAvion);
+            Main.logger("putAvion", "Successfully wrote Avion");
         } finally {
             MutexAPI.LOCK.unlock();
         }

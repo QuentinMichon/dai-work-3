@@ -84,6 +84,8 @@ public class CompanyController {
         try {
             List<CompanyJSON> companies;
 
+            Main.logger("getCompany", ctx.url());
+
             // get header : If-Modified-Since
             LocalDateTime headerIfModifiedSince = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
 
@@ -125,6 +127,7 @@ public class CompanyController {
                 newCompany = ctx.bodyAsClass(CompanyJSON.class);
             } catch (Exception e){
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
+                Main.logger("postCompany", "Invalid JSON body");
                 return;
             }
 
@@ -136,6 +139,7 @@ public class CompanyController {
                     || newCompany.fleet == null)
             {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body");
+                Main.logger("postCompany", "Invalid JSON body");
                 return;
             }
 
@@ -145,6 +149,7 @@ public class CompanyController {
                 for(CompanyJSON company : companies) {
                     if(company.companyICAO.equals(newCompany.companyICAO)) {
                         ctx.status(HttpStatus.CONFLICT).result("Company ICAO already exists");
+                        Main.logger("postCompany", "Company ICAO already exists");
                         return;
                     }
                 }
@@ -161,10 +166,12 @@ public class CompanyController {
                 for(CompanyJSON.AircraftTuple aircraftTuple : newCompany.fleet) {
                     if(!aircraftICAOs.contains(aircraftTuple.aircraftICAO)) {
                         ctx.status(HttpStatus.CONFLICT).result("The aircraft " + aircraftTuple.aircraftICAO + " use an ICAO that does not exist");
+                        Main.logger("postCompany", "The aircraft " + aircraftTuple.aircraftICAO + " use an ICAO that does not exist");
                         return;
                     } else {
                         if(aircraftTuple.quantity <= 0) {
                             ctx.status(HttpStatus.BAD_REQUEST).result("Invalid JSON body, quantity must be greater than 0");
+                            Main.logger("postCompany", "Invalid JSON body, quantity must be greater than 0");
                             return;
                         }
                     }
@@ -179,11 +186,13 @@ public class CompanyController {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(writer, companies);
             } catch (IOException e) {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                Main.logger("postCompany", "Failed to write JSON file");
                 return;
             }
 
             // response
             ctx.status(HttpStatus.CREATED).json(newCompany);
+            Main.logger("postCompany", "Successfully posted Company");
         } finally {
             MutexAPI.LOCK.unlock();
         }
@@ -200,6 +209,7 @@ public class CompanyController {
 
             if(companyICAO == null || companyICAO.isBlank()) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter companyICAO not empty");
+                Main.logger("postCompany", "Invalid request, need parameter companyICAO not empty");
                 return;
             }
 
@@ -214,6 +224,7 @@ public class CompanyController {
 
             if(companyRemoved == null) {
                 ctx.status(HttpStatus.NOT_FOUND).result("This company does not exists");
+                Main.logger("postCompany", "This company does not exists");
                 return;
             }
             companies.remove(companyRemoved);
@@ -225,6 +236,7 @@ public class CompanyController {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(bw, companies);
             } catch (IOException e) {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                Main.logger("postCompany", "Failed to write JSON file");
                 return;
             }
 
@@ -233,6 +245,7 @@ public class CompanyController {
 
             // send the removed company
             ctx.json(companyRemoved);
+            Main.logger("postCompany", "Successfully deleted Company");
         } finally {
             MutexAPI.LOCK.unlock();
         }
@@ -260,6 +273,7 @@ public class CompanyController {
             // check company
             if(companyICAO.isBlank()) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter company not empty");
+                Main.logger("postCompany", "Invalid request, need parameter company not empty");
                 return;
             }
 
@@ -270,6 +284,7 @@ public class CompanyController {
                     .orElse(null);
             if(company == null) {
                 ctx.status(HttpStatus.NOT_FOUND).result("Company does not exist");
+                Main.logger("postCompany", "Company does not exist");
                 return;
             }
             // company OK
@@ -277,6 +292,7 @@ public class CompanyController {
             // check param aircraftICAO
             if(aircraftICAO == null || aircraftICAO.isBlank()) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter aircraftICAO not empty");
+                Main.logger("postCompany", "Invalid request, need parameter aircraftICAO not empty");
                 return;
             }
 
@@ -284,6 +300,7 @@ public class CompanyController {
 
             if(aircrafts.stream().filter(a -> a.ICAO.equalsIgnoreCase(aircraftICAO)).count() != 1) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Airplane " +  aircraftICAO + " is not into the catalog");
+                Main.logger("postCompany", "Airplane " + aircraftICAO + " is not into the catalog");
                 return;
             }
             // avion ICAO OK
@@ -297,6 +314,7 @@ public class CompanyController {
                 }
             } catch (NumberFormatException e) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid quantity format");
+                Main.logger("postCompany", "Invalid quantity format");
                 return;
             }
             // quantity OK
@@ -322,6 +340,7 @@ public class CompanyController {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(bw, companies);
             } catch (IOException e) {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                Main.logger("postCompany", "Failed to write JSON file");
                 return;
             }
 
@@ -329,6 +348,7 @@ public class CompanyController {
             lastUpdate = LocalDateTime.now();
 
             ctx.status(HttpStatus.ACCEPTED).json(company);
+            Main.logger("postCompany", "Successfully wrote Company");
         } finally {
             MutexAPI.LOCK.unlock();
         }
@@ -353,6 +373,7 @@ public class CompanyController {
             // check company
             if(companyICAO.isBlank()) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter company not empty");
+                Main.logger("sellAircraft", "Invalid request, need parameter company not empty");
                 return;
             }
 
@@ -363,6 +384,7 @@ public class CompanyController {
                     .orElse(null);
             if(company == null) {
                 ctx.status(HttpStatus.NOT_FOUND).result("Company does not exist");
+                Main.logger("sellAircraft", "Company does not exist");
                 return;
             }
 
@@ -375,12 +397,14 @@ public class CompanyController {
                 }
             } catch (NumberFormatException e) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid quantity format");
+                Main.logger("sellAircraft", "Invalid quantity format");
                 return;
             }
 
             // check param aircraftICAO
             if(aircraftICAO == null || aircraftICAO.isBlank()) {
                 ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request, need parameter aircraftICAO not empty");
+                Main.logger("sellAircraft", "Invalid request, need parameter aircraftICAO not empty");
                 return;
             }
 
@@ -388,11 +412,13 @@ public class CompanyController {
 
             if(aircraftToSell == null) {
                 ctx.status(HttpStatus.FAILED_DEPENDENCY).result("This company does not own this aircraft");
+                Main.logger("sellAircraft", "This company does not own this aircraft");
                 return;
             }
 
             if(aircraftToSell.quantity < nb) {
-                ctx.status(HttpStatus.CONFLICT).result("You can't sell more than "+ aircraftToSell.quantity +" aircrafts");
+                ctx.status(HttpStatus.CONFLICT).result("You can't sell more than "+ aircraftToSell.quantity +" aircraft");
+                Main.logger("sellAircraft", "You can't sell more than "+ aircraftToSell.quantity +" aircraft");
                 return;
             } else if(aircraftToSell.quantity == nb) {
                 company.fleet.remove(aircraftToSell);
@@ -407,6 +433,7 @@ public class CompanyController {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(bw, companies);
             } catch (IOException e) {
                 ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Failed to write JSON file");
+                Main.logger("sellAircraft", "Failed to write JSON file");
                 return;
             }
 
@@ -414,7 +441,7 @@ public class CompanyController {
             lastUpdate = LocalDateTime.now();
 
             ctx.json(company).status(HttpStatus.ACCEPTED);
-
+            Main.logger("sellAircraft", "Successfully wrote Company");
         } finally {
             MutexAPI.LOCK.unlock();
         }
