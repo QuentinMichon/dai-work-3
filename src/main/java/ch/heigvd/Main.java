@@ -3,12 +3,17 @@ package ch.heigvd;
 import ch.heigvd.controller.AirplaneController;
 import ch.heigvd.controller.CompanyController;
 import io.javalin.Javalin;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Main {
     public static final int PORT = 8080;
 
     public static void main(String[] args) {
-        Javalin app = Javalin.create();
+        Javalin app = Javalin.create( config -> {
+            config.validation.register(LocalDateTime.class, LocalDateTime::parse);
+        });
 
         app.get("/avions", AirplaneController::getAvions);
         app.post("/avions", AirplaneController::postAvion);
@@ -23,5 +28,10 @@ public class Main {
         app.put("/company/{cmpICAO}/sell", CompanyController::sellAircraft);
 
         app.start(PORT);
+    }
+
+    public static void logger(String fct, String message) {
+        LocalDateTime now = LocalDateTime.now();
+        System.out.println(now.format(DateTimeFormatter.ISO_TIME) + " [" + fct  + "] LOGGER - " + message);
     }
 }
