@@ -24,7 +24,7 @@ Les étapes suivantes vous permettent de cloner et builder le projet afin de pou
 
 Cloner le repo :
 ```bash
-git clone git@github.com:QuentinMichon/dai-work-2.git
+git clone git@github.com:QuentinMichon/dai-work-3.git
 ```
 
 Entrer dans le dossier racine :
@@ -124,7 +124,7 @@ Ensuite, sur la VM, générez une clé SSH et déposez-la dans vos clés SSH sur
 
 Une fois les réglages effectués, clonez le repo :
 ```bash
-git clone git@github.com:QuentinMichon/dai-work-2.git
+git clone git@github.com:QuentinMichon/dai-work-3.git
 ```
 
 Déplacez-vous dans le dossier `traefik` :
@@ -144,9 +144,11 @@ mv .env.exemple .env
 nano .env
 ```
 
-Une fois les modifications effectuées, lancez le container avec Docker Compose :
+Ensuite, il faut générer l'archive JAR du projet (voir les commandes dans [Clone et Build](#clone-et-build)).
+
+Une fois les modifications effectuées et après avoir généré l'archive du projet, lancez le container avec Docker Compose :
 ```bash
-docker compose up airapi --build
+  docker compose up airapi --build
 ```
 
 Le service est accessible !
