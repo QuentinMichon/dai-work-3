@@ -1,0 +1,724 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Scratch Pad
+meta:
+  id: wrk_scratchpad
+  created: 1765528208388
+  modified: 1765528208388
+  description: ""
+collection:
+  - name: VM
+    meta:
+      id: fld_765280ccfaf943849de1dbec692cd1d1
+      created: 1768984826780
+      modified: 1768984826780
+      sortKey: -1768984826780
+      description: ""
+    children:
+      - name: Company
+        meta:
+          id: fld_5541830a6c6d41a2bb13f2e7a6b35d35
+          created: 1765706554140
+          modified: 1768986085603
+          sortKey: -1768984829952
+          description: ""
+        children:
+          - url: api.dai.swisspotter.ch/company
+            name: New Request
+            meta:
+              id: req_696577186f8f4024ac176b6ed0c79bac
+              created: 1765706557378
+              modified: 1768986076366
+              isPrivate: false
+              description: ""
+              sortKey: -1765706557378
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "companyICAO" : "ETH",
+                  "name" : "Ethiopian Airlines",
+                  "country" : "Ethiopa",
+                	"fleet" : [ {
+                		"aircraftICAO" : "B727",
+                		"quantity" : 120
+                	} ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: api.dai.swisspotter.ch/company
+            name: Get Company with cache
+            meta:
+              id: req_a733054a8cdb4a2598179b99d6080725
+              created: 1765707477378
+              modified: 1768986070952
+              isPrivate: false
+              description: ""
+              sortKey: -1765707477378
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+              - name: If-Modified-Since
+                value: "{% response 'header', 'req_a733054a8cdb4a2598179b99d6080725',
+                  'b64::TGFzdC1Nb2RpZmllZA==::46b', 'never', 60 %}"
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: api.dai.swisspotter.ch/company
+            name: New Request
+            meta:
+              id: req_491f502b1dc84e30b506bb6566ded68c
+              created: 1765719433125
+              modified: 1768986065426
+              isPrivate: false
+              description: ""
+              sortKey: -1765719433125
+            method: DELETE
+            parameters:
+              - name: companyICAO
+                value: ETH
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: api.dai.swisspotter.ch/company/ezy/buy
+            name: Buy Aircraft (EZY)
+            meta:
+              id: req_6efc903adeae4e1085896de42f85ab8b
+              created: 1765808067298
+              modified: 1768986058246
+              isPrivate: false
+              description: ""
+              sortKey: -1765808067298
+            method: PUT
+            parameters:
+              - name: aircraftICAO
+                value: B737
+                description: ""
+                disabled: false
+              - name: aircraftICAO
+                value: A999
+                description: ""
+                disabled: true
+              - name: quantity
+                value: "10"
+                description: ""
+                disabled: true
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: api.dai.swisspotter.ch/company/ezy/sell
+            name: Sell Aircraft (EZY)
+            meta:
+              id: req_206194fc739f4ac9970ce4e6be62f6c1
+              created: 1765903458052
+              modified: 1768986050868
+              isPrivate: false
+              description: ""
+              sortKey: -1765903458052
+            method: PUT
+            parameters:
+              - name: aircraftICAO
+                value: B737
+                description: ""
+                disabled: false
+              - name: quantity
+                value: "10"
+                description: ""
+                disabled: true
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Avion
+        meta:
+          id: fld_793f3064f19e462ea7efbe80a7197dc6
+          created: 1768984850029
+          modified: 1768984850029
+          sortKey: -1768984830002
+          description: ""
+        children:
+          - url: api.dai.swisspotter.ch/avions
+            name: Get Avion
+            meta:
+              id: req_5b4b1bf8da4f4c6e859c3b128dfdbc5d
+              created: 1768984850030
+              modified: 1768984850030
+              isPrivate: false
+              description: ""
+              sortKey: -1765528279892
+            method: GET
+            parameters:
+              - name: sort
+                value: qwqwoiqwdh
+                description: ""
+                disabled: true
+              - name: sort
+                value: ""
+                description: ""
+                disabled: true
+              - name: sort
+                value: constructor
+                description: ""
+                disabled: false
+              - name: sort
+                value: -constructor
+                description: ""
+                disabled: true
+              - name: sort
+                value: icao
+                description: ""
+                disabled: false
+              - name: constructor
+                value: Quentin
+                description: ""
+                disabled: false
+              - name: constructor
+                value: Airbus
+                description: ""
+                disabled: true
+              - name: capacity
+                value: "100"
+                description: ""
+                disabled: true
+              - name: capacity
+                value: "-500"
+                description: ""
+                disabled: true
+              - name: range
+                value: "10000"
+                description: ""
+                disabled: false
+              - name: range
+                value: "-15000"
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: api.dai.swisspotter.ch/avions
+            name: Post Avion
+            meta:
+              id: req_a8be7bd84e9443b1a45fb7aea3c53887
+              created: 1768984850031
+              modified: 1768984850031
+              isPrivate: false
+              description: ""
+              sortKey: -1765528279792
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                { 
+                	"constructor": "QUENTIN",
+                	"ICAO": "Q001",
+                	"range": 12000,
+                	"maxCapacity": 150 
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: api.dai.swisspotter.ch/avions
+            name: Del Avion
+            meta:
+              id: req_aac51ff062194444b38f9f3e61f6023c
+              created: 1768984850032
+              modified: 1768984850032
+              isPrivate: false
+              description: ""
+              sortKey: -1765620192800
+            method: DELETE
+            parameters:
+              - name: icao
+                value: qqqq
+                description: ""
+                disabled: true
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: api.dai.swisspotter.ch/avions
+            name: Put Avion
+            meta:
+              id: req_de1d3ff08e1e472a9b81e5667673897d
+              created: 1768984850033
+              modified: 1768984850033
+              isPrivate: false
+              description: ""
+              sortKey: -1765641464473
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"range": "20000"
+                }
+            parameters:
+              - name: icao
+                value: Q001
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+  - name: LOCAL
+    meta:
+      id: fld_d3abcb5c38b3454ca4d3a63a3d492bf8
+      created: 1768984841777
+      modified: 1768984841777
+      sortKey: -1768984841777
+      description: ""
+    children:
+      - name: Avion
+        meta:
+          id: fld_f2d88743021d41a5bd670a442fc0dd1e
+          created: 1765528269573
+          modified: 1768984854088
+          sortKey: -1768984854052
+          description: ""
+        children:
+          - url: localhost:8080/avions
+            name: Get Avion
+            meta:
+              id: req_73430984b35f4825a57e0de0dd3411d5
+              created: 1765528508636
+              modified: 1768984914119
+              isPrivate: false
+              description: ""
+              sortKey: -1765528279892
+            method: GET
+            parameters:
+              - name: sort
+                value: qwqwoiqwdh
+                description: ""
+                disabled: true
+              - name: sort
+                value: ""
+                description: ""
+                disabled: true
+              - name: sort
+                value: constructor
+                description: ""
+                disabled: false
+              - name: sort
+                value: -constructor
+                description: ""
+                disabled: true
+              - name: sort
+                value: icao
+                description: ""
+                disabled: false
+              - name: constructor
+                value: Quentin
+                description: ""
+                disabled: true
+              - name: constructor
+                value: Airbus
+                description: ""
+                disabled: true
+              - name: capacity
+                value: "100"
+                description: ""
+                disabled: true
+              - name: capacity
+                value: "-500"
+                description: ""
+                disabled: true
+              - name: range
+                value: "10000"
+                description: ""
+                disabled: true
+              - name: range
+                value: "-15000"
+                description: ""
+                disabled: true
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: localhost:8080/avions
+            name: Post Avion
+            meta:
+              id: req_4efb103b0aab486888ef4053c7c1b333
+              created: 1765539657914
+              modified: 1768984887816
+              isPrivate: false
+              description: ""
+              sortKey: -1765528279792
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                { 
+                	"constructor": "QUENTIN",
+                	"ICAO": "Q001",
+                	"range": 12000,
+                	"maxCapacity": 150 
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: localhost:8080/avions
+            name: Del Avion
+            meta:
+              id: req_52ba410cbee348739fe0418481a71897
+              created: 1765620192800
+              modified: 1768985142569
+              isPrivate: false
+              description: ""
+              sortKey: -1765620192800
+            method: DELETE
+            parameters:
+              - name: icao
+                value: Q001
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: localhost:8080/avions
+            name: Put Avion
+            meta:
+              id: req_5d586175f8a047f78246449ea378162a
+              created: 1765641464473
+              modified: 1768984871960
+              isPrivate: false
+              description: ""
+              sortKey: -1765641464473
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"range": "20000"
+                }
+            parameters:
+              - name: icao
+                value: Q001
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Company
+        meta:
+          id: fld_337fb112433d42e2ba3f17eb389833b7
+          created: 1768986009199
+          modified: 1768986021362
+          sortKey: -1768984854152
+          description: ""
+        children:
+          - url: localhost:8080/company
+            name: Get Company with cache
+            meta:
+              id: req_1cd042c4333444b6b1ca6dfc2cf1983c
+              created: 1768986009200
+              modified: 1768986009200
+              isPrivate: false
+              description: ""
+              sortKey: -1765707477378
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+              - name: If-Modified-Since
+                value: "{% response 'header', 'req_a733054a8cdb4a2598179b99d6080725',
+                  'b64::TGFzdC1Nb2RpZmllZA==::46b', 'never', 60 %}"
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: localhost:8080/company
+            name: New Request
+            meta:
+              id: req_e75178357358460081ebdcaa496882ae
+              created: 1768986009200
+              modified: 1768986009200
+              isPrivate: false
+              description: ""
+              sortKey: -1765706557378
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "companyICAO" : "ETH",
+                  "name" : "Ethiopian Airlines",
+                  "country" : "Ethiopa",
+                	"fleet" : [ {
+                		"aircraftICAO" : "B727",
+                		"quantity" : 120
+                	} ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: localhost:8080/company/ezy/buy
+            name: Buy Aircraft (EZY)
+            meta:
+              id: req_35cf722edbc6481e9eb410ea418a8d6f
+              created: 1768986009201
+              modified: 1768986009201
+              isPrivate: false
+              description: ""
+              sortKey: -1765808067298
+            method: PUT
+            parameters:
+              - name: aircraftICAO
+                value: B737
+                description: ""
+                disabled: false
+              - name: aircraftICAO
+                value: A999
+                description: ""
+                disabled: true
+              - name: quantity
+                value: "10"
+                description: ""
+                disabled: true
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: localhost:8080/company
+            name: New Request
+            meta:
+              id: req_6ae6f0491280449b8305f0678aa0ecef
+              created: 1768986009201
+              modified: 1768986009201
+              isPrivate: false
+              description: ""
+              sortKey: -1765719433125
+            method: DELETE
+            parameters:
+              - name: companyICAO
+                value: ETH
+                description: ""
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: localhost:8080/company/ezy/sell
+            name: Sell Aircraft (EZY)
+            meta:
+              id: req_ca1f4ac879ab4449ad743df78569b496
+              created: 1768986009202
+              modified: 1768986009202
+              isPrivate: false
+              description: ""
+              sortKey: -1765903458052
+            method: PUT
+            parameters:
+              - name: aircraftICAO
+                value: B737
+                description: ""
+                disabled: false
+              - name: quantity
+                value: "10"
+                description: ""
+                disabled: true
+            headers:
+              - name: User-Agent
+                value: insomnia/12.1.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_99d30891da4bdcebc63947a8fc17f076de878684
+    created: 1765528238092
+    modified: 1768500375384
+environments:
+  name: Base Environment
+  meta:
+    id: env_99d30891da4bdcebc63947a8fc17f076de878684
+    created: 1765528238090
+    modified: 1768500375388
+    isPrivate: false

@@ -507,6 +507,9 @@ Retourne l'état de la compagnie avant la suppression :
 >[!NOTE] 
 >Si vous trouvez des erreurs, merci de créer une issue sur le [repo](https://github.com/QuentinMichon/dai-work-3/issues).
 
+## Pool de requête
+Nous utilions [Insomnia](https://insomnia.rest/) pour générer des requêtes afin de tester notre API. Vous pouvez importer les requêtes grâce au fichier [dai-request.yaml](../API/dai-request.yaml).
+
 ## Auteurs
 
 - [Quentin Michon](https://github.com/QuentinMichon)
