@@ -79,6 +79,7 @@ public class CompanyController {
     //-------------- ENDPOINT FUNCTIONS --------------
 
     public static void getCompany(Context ctx) {
+        Main.logger("getCompany", ctx.url());
         MutexAPI.LOCK.lock();
 
         try {
@@ -116,6 +117,7 @@ public class CompanyController {
     }
 
     public static void postCompany(Context ctx) {
+        Main.logger("postCompany", ctx.url());
         MutexAPI.LOCK.lock();
 
         try {
@@ -199,7 +201,7 @@ public class CompanyController {
     }
 
     public static void deleteCompany(Context ctx) {
-
+        Main.logger("deleteCompany", ctx.url());
         MutexAPI.LOCK.lock();
 
         try {
@@ -253,7 +255,7 @@ public class CompanyController {
 
     // Aircraft handler for company
     public static void addAircraft(Context ctx) {
-
+        Main.logger("addAircraft", ctx.url());
         MutexAPI.LOCK.lock();
 
         try {
@@ -356,6 +358,7 @@ public class CompanyController {
 
     public static void sellAircraft(Context ctx) {
 
+        Main.logger("sellAircraft", ctx.url());
         MutexAPI.LOCK.lock();
 
         try {

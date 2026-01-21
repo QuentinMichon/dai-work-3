@@ -206,7 +206,7 @@ curl -X DELETE "https://api.dai.swisspotter.ch/avions?icao=A359"
 
 #### Réponse
 
-Retourne dans le body une liste JSON contenant l'avion supprimé, ou une liste vide si l'avion n'existait pas.
+Retourne dans le body une liste JSON contenant l'avion supprimé, ou une erreur (404) si l'ICAO n'existe pas.
 
 Exemple :
 ```json
@@ -223,6 +223,7 @@ Exemple :
 #### Status Codes
 
 - `200` (OK) : l'avion est supprimé
+- `404` (Not Found) : l'ICAO donné n'existe pas
 - `500` (Internal Server Error) : le fichier JSON sur le serveur n'a pas pu être mis à jour
 
 ### Créer une compagnie
@@ -505,6 +506,9 @@ Retourne l'état de la compagnie avant la suppression :
 
 >[!NOTE] 
 >Si vous trouvez des erreurs, merci de créer une issue sur le [repo](https://github.com/QuentinMichon/dai-work-3/issues).
+
+## Pool de requête
+Nous utilions [Insomnia](https://insomnia.rest/) pour générer des requêtes afin de tester notre API. Vous pouvez importer les requêtes grâce au fichier [dai-request.yaml](../API/dai-request.yaml).
 
 ## Auteurs
 

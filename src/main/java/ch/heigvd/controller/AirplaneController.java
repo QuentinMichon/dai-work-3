@@ -12,6 +12,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -46,7 +47,7 @@ public class AirplaneController {
     //-------------- ENDPOINT FUNCTIONS --------------
 
     public static void getAvions(Context ctx) {
-
+        Main.logger("getAvions", ctx.url());
         // MUTEX LOCK
         MutexAPI.LOCK.lock();
 
@@ -144,6 +145,7 @@ public class AirplaneController {
 
     public static void postAvion(Context ctx) {
 
+        Main.logger("postAvion", ctx.url());
         // MUTEX LOCK
         MutexAPI.LOCK.lock();
 
@@ -212,6 +214,8 @@ public class AirplaneController {
 
     public static void deleteAvion(Context ctx) {
 
+        Main.logger("deleteAvion", ctx.url());
+
         // MUTEX LOCK
         MutexAPI.LOCK.lock();
 
@@ -220,23 +224,29 @@ public class AirplaneController {
 
             // read params
             String icao = ctx.queryParam("icao");
-            //String constructor = ctx.queryParam("constructor");
 
             // control params
             if (icao == null) {
-                ctx.result("Invalid constructor need parameter <constructor> xor <icao>")
+                ctx.result("Invalid constructor need parameter <icao>")
                         .status(HttpStatus.BAD_REQUEST);
-                Main.logger("deleteAvion", "Invalid constructorneed parameter <constructor> xor <icao>");
+                Main.logger("deleteAvion", "Invalid constructor need parameter <icao>");
                 return;
             }
 
             // fetch current data
             List<AvionJSON> avions = readAvions(JSON_FILEPATH);
 
-            // delete airplanes
-            List<AvionJSON> removed = avions.stream().filter(a -> icao.equalsIgnoreCase(a.ICAO)).toList();
+            // delete airplane
+            AvionJSON removed;
+            try {
+                removed = avions.stream().filter(a -> icao.equalsIgnoreCase(a.ICAO)).toList().getFirst(); // ICAO is unique
+            } catch (NoSuchElementException e) {
+                ctx.status(HttpStatus.NOT_FOUND).result("Avion not found");
+                Main.logger("deleteAvion", "Avion (" + icao + ") not found");
+                return;
+            }
 
-            avions.removeAll(removed);
+            avions.remove(removed);
 
             // update JSON file
             try (Writer writer = new FileWriter(JSON_FILEPATH, StandardCharsets.UTF_8);
@@ -250,7 +260,7 @@ public class AirplaneController {
             }
 
             // send the removed airplanes
-            ctx.json(removed);
+            ctx.json(removed).status(HttpStatus.OK);
             Main.logger("deleteAvion", "Successfully deleted Avion");
         } finally {
             MutexAPI.LOCK.unlock();
@@ -267,6 +277,7 @@ public class AirplaneController {
      **/
     public static void putAvion(Context ctx) {
 
+        Main.logger("putAvion", ctx.url());
         // MUTEX LOCK
         MutexAPI.LOCK.lock();
 
