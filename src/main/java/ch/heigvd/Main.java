@@ -17,10 +17,15 @@ public class Main {
 
 
         // begin juste pour le front end
-        app.before(ctx -> {
-            ctx.header("Access-Control-Allow-Origin", "http://localhost:5173");
-            //ctx.header("Access-Control-Allow-Origin", "https://dai.swisspotter.ch");
+        app.options("/*", ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
             ctx.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+            ctx.header("Access-Control-Allow-Headers", "*");
+            ctx.status(204);
+        });
+
+        app.before(ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
         });
         // fin
 
