@@ -15,6 +15,15 @@ public class Main {
             config.validation.register(LocalDateTime.class, LocalDateTime::parse);
         });
 
+
+        // begin juste pour le front end
+        app.before(ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "http://localhost:5173");
+            ctx.header("Access-Control-Allow-Origin", "https://dai.swisspotter.ch");
+            ctx.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+        });
+        // fin
+
         app.get("/avions", AirplaneController::getAvions);
         app.post("/avions", AirplaneController::postAvion);
         app.delete("/avions", AirplaneController::deleteAvion);
