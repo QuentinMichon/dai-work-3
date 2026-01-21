@@ -24,36 +24,36 @@ Les étapes suivantes vous permettent de cloner et builder le projet afin de pou
 
 Cloner le repo :
 ```bash
-git clone git@github.com:QuentinMichon/dai-work-3.git
+  git clone git@github.com:QuentinMichon/dai-work-3.git
 ```
 
 Entrer dans le dossier racine :
 ```bash
-cd dai-work-3
+  cd dai-work-3
 ```
 
 ### Pour Linux / macOS
 
 Télécharger les dépendances :
 ```bash
-./mvnw dependency:go-offline
+  ./mvnw dependency:go-offline
 ```
 
 Générer une archive JAR :
 ```bash
-./mvnw clean package
+  ./mvnw clean package
 ```
 
 ### Pour Windows
 
 Télécharger les dépendances :
 ```bash
-./mvnw.cmd dependency:go-offline
+  ./mvnw.cmd dependency:go-offline
 ```
 
 Générer une archive JAR :
 ```bash
-./mvnw.cmd clean package
+  ./mvnw.cmd clean package
 ```
 
 > [!NOTE]
@@ -117,19 +117,19 @@ Les lignes en gras sont les records ajoutés pour atteindre notre VM avec le sou
 
 Pour commencer, connectez-vous en SSH à la VM :
 ```bash
-ssh ubuntu@dai.swisspotter.ch
+  ssh ubuntu@dai.swisspotter.ch
 ```
 
 Ensuite, sur la VM, générez une clé SSH et déposez-la dans vos clés SSH sur GitHub. Voir la [documentation officielle](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) pour vous aider.
 
-Une fois les réglages effectués, clonez le repo :
+Une fois les réglages effectués, clonez le repo (utilisé HTTPS pour ne pas à avoir besoin d'ajouter la clé SSH de la vm) :
 ```bash
-git clone git@github.com:QuentinMichon/dai-work-3.git
+  git clone https://github.com/QuentinMichon/dai-work-3.git
 ```
 
 Déplacez-vous dans le dossier `traefik` :
 ```bash
-cd dai-work-3/traefik
+  cd dai-work-3/traefik
 ```
 
 Ensuite lisez [le guide](./traefik/README.md) pour lancer Traefik sur la VM.
@@ -137,11 +137,11 @@ Ensuite lisez [le guide](./traefik/README.md) pour lancer Traefik sur la VM.
 Une fois Traefik lancé, revenez à la racine du projet `dai-work-3` et renommez le fichier `.env.exemple` en `.env`, puis remplissez le champ `API_FULLY_QUALIFIED_DOMAIN_NAME` avec le nom de domaine qui pointe sur votre VM (dans notre cas : `dai.swisspotter.ch`).
 
 ```bash
-# Renommer le fichier .env.exemple en .env
-mv .env.exemple .env
+  # Renommer le fichier .env.exemple en .env
+  mv .env.exemple .env
 
-# Ouvrir l'éditeur de fichier pour modifier le fichier
-nano .env
+  # Ouvrir l'éditeur de fichier pour modifier le fichier
+  nano .env
 ```
 
 Ensuite, il faut générer l'archive JAR du projet (voir les commandes dans [Clone et Build](#clone-et-build)).
